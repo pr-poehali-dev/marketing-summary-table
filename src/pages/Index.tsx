@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const MONTHS = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
@@ -478,6 +479,7 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>("kpi");
   const [title, setTitle] = useState("РнП Маркетинг");
   const [period, setPeriod] = useState("2025");
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -502,10 +504,21 @@ export default function Index() {
                 placeholder="Год"
               />
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Icon name="Info" size={13} />
-              <span className="hidden sm:block">Данные хранятся в браузере</span>
-            </div>
+            <nav className="flex items-center gap-1">
+              <button
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors"
+              >
+                <Icon name="Table2" size={13} />
+                Таблицы
+              </button>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+              >
+                <Icon name="LayoutDashboard" size={13} />
+                Дашборд
+              </button>
+            </nav>
           </div>
         </div>
       </header>
