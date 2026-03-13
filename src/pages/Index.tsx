@@ -5,12 +5,16 @@ import { TabKPI } from "@/components/marketing/TabKPI";
 import { TabReport } from "@/components/marketing/TabCampaigns";
 import { TabPulse } from "@/components/marketing/TabPulse";
 import { TabFunnels } from "@/components/marketing/TabFunnels";
+import { TabInfluencers } from "@/components/marketing/TabInfluencers";
+import { TabLaunch } from "@/components/marketing/TabLaunch";
 
 const TABS = [
-  { id: "pulse", label: "РНП", icon: "Activity", desc: "Рука на Пульсе" },
-  { id: "funnels", label: "Воронки", icon: "GitBranch", desc: "Оцифровка пути" },
-  { id: "kpi", label: "Метрики", icon: "BarChart2", desc: "KPI и показатели" },
-  { id: "report", label: "Отчёт", icon: "FileText", desc: "Итоги периода" },
+  { id: "pulse",       label: "РНП",        icon: "Activity",       desc: "Рука на Пульсе" },
+  { id: "influencers", label: "Инфлюенс",   icon: "Star",           desc: "Блогеры / Reels" },
+  { id: "funnels",     label: "Воронки",     icon: "GitBranch",      desc: "Оцифровка пути" },
+  { id: "launch",      label: "Запуск",      icon: "Rocket",         desc: "Декомпозиция" },
+  { id: "kpi",         label: "Метрики",     icon: "BarChart2",      desc: "KPI и показатели" },
+  { id: "report",      label: "Отчёт",       icon: "FileText",       desc: "Итоги периода" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -47,7 +51,7 @@ export default function Index() {
             <nav className="flex items-center gap-1">
               <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors">
                 <Icon name="Table2" size={13} />
-                Таблицы
+                Основное
               </button>
               <button
                 onClick={() => navigate("/dashboard")}
@@ -64,12 +68,12 @@ export default function Index() {
       {/* Tabs */}
       <div className="bg-card border-b border-border">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
-          <div className="flex gap-0">
+          <div className="flex gap-0 overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
@@ -88,10 +92,12 @@ export default function Index() {
 
       {/* Content */}
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === "pulse" && <TabPulse />}
-        {activeTab === "funnels" && <TabFunnels />}
-        {activeTab === "kpi" && <TabKPI />}
-        {activeTab === "report" && <TabReport />}
+        {activeTab === "pulse"       && <TabPulse />}
+        {activeTab === "influencers" && <TabInfluencers />}
+        {activeTab === "funnels"     && <TabFunnels />}
+        {activeTab === "launch"      && <TabLaunch />}
+        {activeTab === "kpi"         && <TabKPI />}
+        {activeTab === "report"      && <TabReport />}
       </main>
 
       <footer className="border-t border-border mt-8 py-4">

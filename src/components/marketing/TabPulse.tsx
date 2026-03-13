@@ -50,6 +50,26 @@ const GENERAL_ROWS: RowDef[] = [
   { id: "roi", label: "ROI", unit: "%" },
 ];
 
+const CONTENT_TRAFFIC_ROWS: RowDef[] = [
+  { id: "ct_budget", label: "Бюджет (инфлюенс)", unit: "₽" },
+  { id: "ct_bloggers", label: "Кол-во блогеров", unit: "чел." },
+  { id: "ct_reels", label: "Reels / Сторис (кол-во)", unit: "шт." },
+  { id: "ct_reach", label: "Охваты общие", unit: "чел." },
+  { id: "ct_reach_per", label: "Охват на 1 ролик (план)", unit: "чел." },
+  { id: "ct_cpm", label: "CPM", unit: "₽" },
+  { id: "ct_cv_click", label: "CV → клик", unit: "%", isConversion: true, autoFrom: ["ct_clicks", "ct_reach"] },
+  { id: "ct_clicks", label: "Клики", unit: "шт." },
+  { id: "ct_cv_lead", label: "CV → лид", unit: "%", isConversion: true, autoFrom: ["ct_leads", "ct_clicks"] },
+  { id: "ct_leads", label: "Лиды", unit: "шт." },
+  { id: "ct_cv_sale", label: "CV → продажа", unit: "%", isConversion: true, autoFrom: ["ct_sales", "ct_leads"] },
+  { id: "ct_sales", label: "Продажи", unit: "шт." },
+  { id: "ct_revenue", label: "Выручка", unit: "₽" },
+  { id: "ct_cpl", label: "Цена лида", unit: "₽" },
+  { id: "ct_cps", label: "Цена продажи", unit: "₽" },
+  { id: "ct_drr", label: "ДРР", unit: "%" },
+  { id: "ct_roi", label: "ROI", unit: "%" },
+];
+
 const CHANNEL_TEMPLATES: Record<string, RowDef[]> = {
   "Telegram — Посевы": [
     { id: "budget", label: "Рекламный бюджет", unit: "₽" },
@@ -230,6 +250,7 @@ function PctCell({ plan, fact }: { plan: string; fact: string }) {
 function initSections(): SectionState[] {
   return [
     makeSection("general", "Маркетинг общий", GENERAL_ROWS),
+    makeSection("content", "Контент-трафик / Инфлюенс", CONTENT_TRAFFIC_ROWS),
     makeSection("tg_sevy", "Telegram — Посевы", CHANNEL_TEMPLATES["Telegram — Посевы"]),
     makeSection("tg_ads", "Telegram Ads", CHANNEL_TEMPLATES["Telegram Ads"]),
     makeSection("yt", "YouTube", CHANNEL_TEMPLATES["YouTube"]),
