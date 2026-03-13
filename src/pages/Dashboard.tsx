@@ -2,95 +2,74 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
 import Icon from "@/components/ui/icon";
 
-// ─── Mock data ──────────────────────────────────────────────────────────────
-const TRAFFIC_DATA = [
-  { day: "01 мар", users: 420, sessions: 890, new: 240 },
-  { day: "02 мар", users: 380, sessions: 820, new: 210 },
-  { day: "03 мар", users: 510, sessions: 1100, new: 290 },
-  { day: "04 мар", users: 340, sessions: 750, new: 180 },
-  { day: "05 мар", users: 460, sessions: 980, new: 260 },
-  { day: "06 мар", users: 530, sessions: 1140, new: 310 },
-  { day: "07 мар", users: 490, sessions: 1050, new: 285 },
-  { day: "08 мар", users: 610, sessions: 1320, new: 350 },
-  { day: "09 мар", users: 580, sessions: 1250, new: 330 },
-  { day: "10 мар", users: 640, sessions: 1380, new: 370 },
-  { day: "11 мар", users: 700, sessions: 1510, new: 410 },
-  { day: "12 мар", users: 660, sessions: 1430, new: 390 },
+// ─── Mock marketing data (связан с РНП, Воронками, Инфлюенсерами) ─────────────
+const WEEKLY_DATA = [
+  { week: "Нед 1", budget: 85000, leads: 42, conversions: 8, reach: 12400, cpl: 2024, romi: 118 },
+  { week: "Нед 2", budget: 92000, leads: 58, conversions: 11, reach: 18700, cpl: 1586, romi: 142 },
+  { week: "Нед 3", budget: 78000, leads: 35, conversions: 7, reach: 9800, cpl: 2229, romi: 98 },
+  { week: "Нед 4", budget: 105000, leads: 74, conversions: 15, reach: 24300, cpl: 1419, romi: 187 },
 ];
 
-const CHANNELS_DATA = [
-  { name: "Direct", value: 8872, pct: 59, color: "#3b82f6" },
-  { name: "Paid Search", value: 905, pct: 9, color: "#60a5fa" },
-  { name: "Social", value: 138, pct: 3, color: "#93c5fd" },
-  { name: "Organic Search", value: 120, pct: 1, color: "#bfdbfe" },
-  { name: "Referral", value: 51, pct: 1, color: "#dbeafe" },
-  { name: "Email", value: 6, pct: 0, color: "#eff6ff" },
-  { name: "Прочее", value: 2, pct: 0, color: "#e5e7eb" },
+const FUNNEL_DATA = [
+  { stage: "Охват", value: 64500, pct: 100 },
+  { stage: "Клики", value: 3870, pct: 6 },
+  { stage: "Лиды", value: 209, pct: 0.3 },
+  { stage: "Квал.", value: 84, pct: 0.13 },
+  { stage: "Продажи", value: 41, pct: 0.06 },
 ];
 
-const BOUNCE_DATA = [
-  { day: "01 мар", bounce: 58, duration: 62 },
-  { day: "02 мар", bounce: 61, duration: 59 },
-  { day: "03 мар", bounce: 55, duration: 68 },
-  { day: "04 мар", bounce: 63, duration: 55 },
-  { day: "05 мар", bounce: 59, duration: 65 },
-  { day: "06 мар", bounce: 56, duration: 70 },
-  { day: "07 мар", bounce: 57, duration: 67 },
-  { day: "08 мар", bounce: 54, duration: 72 },
-  { day: "09 мар", bounce: 52, duration: 75 },
-  { day: "10 мар", bounce: 51, duration: 78 },
-  { day: "11 мар", bounce: 49, duration: 82 },
-  { day: "12 мар", bounce: 61, duration: 74 },
+const CHANNEL_DATA = [
+  { name: "Instagram / Reels", value: 38, color: "#3b82f6" },
+  { name: "Telegram", value: 27, color: "#8b5cf6" },
+  { name: "Таргет", value: 19, color: "#06b6d4" },
+  { name: "SEO / Органика", value: 10, color: "#10b981" },
+  { name: "Прочее", value: 6, color: "#e5e7eb" },
 ];
 
-const COUNTRIES = [
-  { name: "Россия", value: 8002 },
-  { name: "Казахстан", value: 648 },
-  { name: "Беларусь", value: 304 },
-  { name: "Украина", value: 12 },
-  { name: "Германия", value: 3 },
-  { name: "США", value: 2 },
+const KPI_DATA = [
+  { name: "Охват", plan: 60000, fact: 64500, unit: "чел." },
+  { name: "Лиды", plan: 200, fact: 209, unit: "шт." },
+  { name: "Продажи", plan: 35, fact: 41, unit: "шт." },
+  { name: "ROMI", plan: 130, fact: 136, unit: "%" },
 ];
 
-const CITIES = [
-  { name: "Москва", value: 633 },
-  { name: "Санкт-Петербург", value: 378 },
-  { name: "Новосибирск", value: 281 },
-  { name: "Екатеринбург", value: 219 },
-  { name: "Казань", value: 190 },
-  { name: "Нижний Новгород", value: 131 },
+const INFLUENCER_DATA = [
+  { name: "Блогер А", reach: 24300, cpm: 820, leads: 28, status: "Опубликовано" },
+  { name: "Блогер Б", reach: 18700, cpm: 1140, leads: 19, status: "Опубликовано" },
+  { name: "Блогер В", reach: 12400, cpm: 960, leads: 14, status: "В работе" },
+  { name: "Блогер Г", reach: 9100, cpm: 1380, leads: 7, status: "Согласовано" },
 ];
 
-const DEVICES_DATA = [
-  { name: "Desktop", value: 8268, pct: 92, color: "#3b82f6" },
-  { name: "Mobile", value: 570, pct: 6, color: "#93c5fd" },
-  { name: "Tablet", value: 93, pct: 1, color: "#dbeafe" },
+const CPL_TREND = [
+  { week: "Нед 1", cpl: 2024, ltv: 14200 },
+  { week: "Нед 2", cpl: 1586, ltv: 15800 },
+  { week: "Нед 3", cpl: 2229, ltv: 13900 },
+  { week: "Нед 4", cpl: 1419, ltv: 16400 },
 ];
 
-const TOTAL_SESSIONS = 8992;
+const PERIODS = ["Нед 1–4 (март)", "Март 2025", "Q1 2025", "2025"];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function Trend({ pct, positive = true }: { pct: string; positive?: boolean }) {
-  const up = positive;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? "text-green-600" : "text-red-500"}`}>
-      <Icon name={up ? "TrendingUp" : "TrendingDown"} size={11} />
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${positive ? "text-green-600" : "text-red-500"}`}>
+      <Icon name={positive ? "TrendingUp" : "TrendingDown"} size={11} />
       {pct}
     </span>
   );
 }
 
-interface TooltipPayloadItem { dataKey: string; name: string; value: number; color: string; }
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadItem[]; label?: string }) => {
+interface TooltipItem { dataKey: string; name: string; value: number; color: string; }
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipItem[]; label?: string }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-lg shadow-lg px-3 py-2 text-xs">
       <div className="font-semibold mb-1 text-foreground">{label}</div>
-      {payload.map((p: TooltipPayloadItem) => (
+      {payload.map((p: TooltipItem) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: p.color }} />
           <span className="text-muted-foreground">{p.name}:</span>
@@ -101,7 +80,6 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   );
 };
 
-// ─── Card wrapper ───────────────────────────────────────────────────────────
 function DashCard({ title, subtitle, children, className = "" }: {
   title: string; subtitle?: string; children: React.ReactNode; className?: string;
 }) {
@@ -119,12 +97,11 @@ function DashCard({ title, subtitle, children, className = "" }: {
   );
 }
 
-// ─── Stat pill ──────────────────────────────────────────────────────────────
-function StatPill({ label, value, trend, up = true }: { label: string; value: string; trend: string; up?: boolean }) {
+function StatPill({ label, value, trend, up = true, icon }: { label: string; value: string; trend: string; up?: boolean; icon?: string }) {
   return (
     <div className="flex flex-col gap-0.5 min-w-0">
       <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-        <Icon name="TrendingUp" size={10} className={up ? "text-green-500" : "text-red-400"} />
+        {icon && <Icon name={icon as "Activity"} size={10} className="text-muted-foreground" />}
         {label}
       </div>
       <div className="font-mono text-xl font-bold leading-none text-foreground">{value}</div>
@@ -133,41 +110,62 @@ function StatPill({ label, value, trend, up = true }: { label: string; value: st
   );
 }
 
-// ─── Donut chart ─────────────────────────────────────────────────────────────
-function DonutChart({ data, total, size = 200 }: { data: typeof CHANNELS_DATA; total: number; size?: number }) {
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    "Опубликовано": "bg-green-100 text-green-700",
+    "В работе": "bg-blue-100 text-blue-700",
+    "Согласовано": "bg-yellow-100 text-yellow-700",
+    "Отправлено": "bg-gray-100 text-gray-600",
+    "Не начато": "bg-gray-100 text-gray-500",
+  };
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <PieChart width={size} height={size}>
-        <Pie
-          data={data}
-          cx={size / 2 - 1}
-          cy={size / 2 - 1}
-          innerRadius={size * 0.35}
-          outerRadius={size * 0.47}
-          dataKey="value"
-          strokeWidth={0}
-        >
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} />
-          ))}
-        </Pie>
-      </PieChart>
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="text-center">
-          <div className="font-mono font-bold text-xl leading-none text-foreground">{total.toLocaleString("ru-RU")}</div>
-        </div>
-      </div>
-    </div>
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${map[status] ?? "bg-muted text-muted-foreground"}`}>
+      {status}
+    </span>
   );
 }
 
-// ─── PERIODS ──────────────────────────────────────────────────────────────
-const PERIODS = ["01 – 12 мар", "Март 2025", "Q1 2025", "2025"];
+// ─── Nav shared ──────────────────────────────────────────────────────────────
+function TopNav({ active }: { active: string }) {
+  const navigate = useNavigate();
+  const items = [
+    { path: "/dashboard", label: "Дашборд", icon: "LayoutDashboard" },
+    { path: "/", label: "Основное", icon: "Table2" },
+    { path: "/analytics", label: "Аналитика", icon: "LineChart" },
+    { path: "/economics", label: "Экономика", icon: "Calculator" },
+    { path: "/research", label: "Исследование", icon: "Search" },
+    { path: "/content", label: "Контент", icon: "Film" },
+  ] as const;
+  return (
+    <nav className="flex items-center gap-1 overflow-x-auto">
+      {items.map((item) => (
+        <button
+          key={item.path}
+          onClick={() => navigate(item.path)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-colors whitespace-nowrap font-medium ${
+            active === item.path
+              ? "text-primary bg-accent"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+        >
+          <Icon name={item.icon as "Activity"} size={13} />
+          {item.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
 
 // ─── Dashboard page ──────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const navigate = useNavigate();
   const [period, setPeriod] = useState(0);
+
+  const totalBudget = WEEKLY_DATA.reduce((s, w) => s + w.budget, 0);
+  const totalLeads = WEEKLY_DATA.reduce((s, w) => s + w.leads, 0);
+  const totalSales = WEEKLY_DATA.reduce((s, w) => s + w.conversions, 0);
+  const avgCPL = Math.round(totalBudget / totalLeads);
+  const avgROMI = Math.round(WEEKLY_DATA.reduce((s, w) => s + w.romi, 0) / WEEKLY_DATA.length);
+  const totalReach = WEEKLY_DATA.reduce((s, w) => s + w.reach, 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,32 +175,18 @@ export default function Dashboard() {
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded bg-primary flex items-center justify-center flex-shrink-0">
-                <Icon name="TableProperties" size={14} className="text-white" />
+                <Icon name="Activity" size={14} className="text-white" />
               </div>
               <span className="font-semibold text-sm">РнП Маркетинг</span>
               <span className="text-muted-foreground text-xs hidden sm:block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:block">2025</span>
             </div>
-            <nav className="flex items-center gap-1">
-              <button
-                onClick={() => navigate("/")}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
-              >
-                <Icon name="Table2" size={13} />
-                Таблицы
-              </button>
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors"
-              >
-                <Icon name="LayoutDashboard" size={13} />
-                Дашборд
-              </button>
-            </nav>
+            <TopNav active="/dashboard" />
           </div>
         </div>
       </header>
 
-      {/* Sub-header: period selector */}
+      {/* Period selector */}
       <div className="bg-card border-b border-border">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-10 flex items-center justify-between">
           <div className="flex items-center gap-1">
@@ -216,212 +200,240 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
-          <span className="text-xs text-muted-foreground hidden sm:block">Обновлено 12 мар, 11:00</span>
+          <span className="text-xs text-muted-foreground hidden sm:block">Обновлено 13 мар, 09:00</span>
         </div>
       </div>
 
-      {/* Grid */}
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 
-          {/* 1. Traffic */}
-          <DashCard title="Посещаемость сайта" subtitle={PERIODS[period]} className="xl:col-span-1">
-            <div className="flex gap-5 flex-wrap">
-              <StatPill label="Пользователи" value="4 614" trend="+631%" />
-              <StatPill label="Сеансы" value="10 845" trend="+1455%" />
-              <StatPill label="Новые" value="2 747" trend="+400%" />
-            </div>
-            <div className="h-36">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={TRAFFIC_DATA} margin={{ top: 4, right: 0, left: -30, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="gradUsers" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="gradSessions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval={2} />
-                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="users" name="Польз." stroke="#3b82f6" strokeWidth={1.5} fill="url(#gradUsers)" dot={false} />
-                  <Area type="monotone" dataKey="sessions" name="Сеансы" stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gradSessions)" dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </DashCard>
-
-          {/* 2. Channels donut */}
-          <DashCard title="Сеансы по каналам" subtitle={PERIODS[period]}>
-            <div className="flex items-center gap-4">
-              <DonutChart data={CHANNELS_DATA} total={TOTAL_SESSIONS} size={160} />
-              <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                {CHANNELS_DATA.slice(0, 6).map((c) => (
-                  <div key={c.name} className="flex items-center gap-2 justify-between">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: c.color }} />
-                      <span className="text-xs text-muted-foreground truncate">{c.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="font-mono text-xs font-medium text-foreground">{c.value.toLocaleString("ru-RU")}</span>
-                      <span className="text-xs text-muted-foreground w-7 text-right">{c.pct}%</span>
-                    </div>
-                  </div>
-                ))}
+        {/* KPI summary row */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
+          {[
+            { label: "Бюджет", value: `${(totalBudget / 1000).toFixed(0)} тыс ₽`, trend: "+12%", up: true, icon: "Wallet" },
+            { label: "Охват", value: `${(totalReach / 1000).toFixed(1)}К`, trend: "+18%", up: true, icon: "Eye" },
+            { label: "Лиды", value: String(totalLeads), trend: "+76%", up: true, icon: "Users" },
+            { label: "Продажи", value: String(totalSales), trend: "+46%", up: true, icon: "ShoppingCart" },
+            { label: "Ср. CPL", value: `${avgCPL.toLocaleString("ru-RU")} ₽`, trend: "-30%", up: true, icon: "Tag" },
+            { label: "ROMI", value: `${avgROMI}%`, trend: "+36%", up: true, icon: "TrendingUp" },
+          ].map((item) => (
+            <div key={item.label} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Icon name={item.icon as "Activity"} size={11} />
+                {item.label}
               </div>
+              <div className="font-mono text-lg font-bold text-foreground leading-none">{item.value}</div>
+              <Trend pct={item.trend} positive={item.up} />
             </div>
-          </DashCard>
-
-          {/* 3. Relevance / bounce */}
-          <DashCard title="Релевантность сайта" subtitle={PERIODS[period]}>
-            <div className="flex gap-5">
-              <StatPill label="Ср. длит. сеанса" value="1h 10m" trend="+1965%" />
-              <StatPill label="Отказы" value="61,94%" trend="-14%" up={false} />
-            </div>
-            <div className="h-36">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={BOUNCE_DATA} margin={{ top: 4, right: 0, left: -30, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="gradBounce" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval={2} />
-                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="duration" name="Длительность" stroke="#3b82f6" strokeWidth={1.5} fill="url(#gradBounce)" dot={false} />
-                  <Area type="monotone" dataKey="bounce" name="Отказы, %" stroke="#f59e0b" strokeWidth={1.5} fill="none" dot={false} strokeDasharray="4 2" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </DashCard>
-
-          {/* 4. Countries */}
-          <DashCard title="Сеансы по странам" subtitle={PERIODS[period]}>
-            <div className="flex flex-col gap-0">
-              <div className="flex items-center justify-between py-1.5 border-b border-border/60">
-                <span className="text-xs text-muted-foreground font-medium">Название</span>
-                <span className="text-xs text-muted-foreground font-medium">Значение</span>
-              </div>
-              {COUNTRIES.map((c, i) => {
-                const maxVal = COUNTRIES[0].value;
-                const pct = Math.round((c.value / maxVal) * 100);
-                return (
-                  <div key={c.name} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0 group">
-                    <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-foreground">{c.name}</div>
-                      <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-primary/40 transition-all" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                    <span className="font-mono text-sm font-semibold text-foreground shrink-0">{c.value.toLocaleString("ru-RU")}</span>
-                  </div>
-                );
-              })}
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-semibold text-muted-foreground">Итого</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-bold text-foreground">10 845</span>
-                  <Trend pct="+1455%" />
-                </div>
-              </div>
-            </div>
-          </DashCard>
-
-          {/* 5. Cities */}
-          <DashCard title="Сеансы по городам" subtitle={PERIODS[period]}>
-            <div className="flex flex-col gap-0">
-              <div className="flex items-center justify-between py-1.5 border-b border-border/60">
-                <span className="text-xs text-muted-foreground font-medium">Название</span>
-                <span className="text-xs text-muted-foreground font-medium">Значение</span>
-              </div>
-              {CITIES.map((c, i) => {
-                const maxVal = CITIES[0].value;
-                const pct = Math.round((c.value / maxVal) * 100);
-                return (
-                  <div key={c.name} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-foreground">{c.name}</div>
-                      <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-primary/40 transition-all" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                    <span className="font-mono text-sm font-semibold text-foreground shrink-0">{c.value.toLocaleString("ru-RU")}</span>
-                  </div>
-                );
-              })}
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs font-semibold text-muted-foreground">Итого</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-bold text-foreground">1 832</span>
-                  <Trend pct="+1455%" />
-                </div>
-              </div>
-            </div>
-          </DashCard>
-
-          {/* 6. Devices donut */}
-          <DashCard title="Сеансы по устройствам" subtitle={PERIODS[period]}>
-            <div className="flex items-center justify-center gap-6">
-              <DonutChart data={DEVICES_DATA} total={TOTAL_SESSIONS} size={160} />
-              <div className="flex flex-col gap-3">
-                {DEVICES_DATA.map((d) => (
-                  <div key={d.name} className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: d.color }} />
-                    <div className="min-w-0">
-                      <div className="text-xs text-muted-foreground">{d.name}</div>
-                      <div className="font-mono text-sm font-bold text-foreground leading-none mt-0.5">
-                        {d.value.toLocaleString("ru-RU")}
-                        <span className="font-normal text-muted-foreground text-xs ml-1">· {d.pct}%</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </DashCard>
-
+          ))}
         </div>
 
-        {/* KPI summary strip */}
-        <div className="mt-4 bg-card border border-border rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-semibold">Сводка KPI за период</div>
-            <span className="text-xs text-muted-foreground">{PERIODS[period]}</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-            {[
-              { label: "Пользователи", value: "4 614", trend: "+631%", up: true },
-              { label: "Сеансы", value: "10 845", trend: "+1455%", up: true },
-              { label: "Новые", value: "2 747", trend: "+400%", up: true },
-              { label: "Ср. сеанс", value: "1h 10m", trend: "+1965%", up: true },
-              { label: "Отказы", value: "61,94%", trend: "-14%", up: false },
-              { label: "Лиды", value: "342", trend: "+88%", up: true },
-              { label: "CPL", value: "1 240 ₽", trend: "-22%", up: true },
-              { label: "ROAS", value: "3,2x", trend: "+41%", up: true },
-            ].map((s) => (
-              <div key={s.label} className="flex flex-col gap-1 p-3 rounded-lg bg-muted/40">
-                <span className="text-xs text-muted-foreground">{s.label}</span>
-                <span className="font-mono text-base font-bold text-foreground leading-none">{s.value}</span>
-                <Trend pct={s.trend} positive={s.up} />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+          {/* Бюджет + Лиды по неделям */}
+          <DashCard title="Бюджет и лиды по неделям" subtitle={PERIODS[period]} className="xl:col-span-2">
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={WEEKLY_DATA} margin={{ top: 4, right: 0, left: -20, bottom: 0 }} barGap={4}>
+                  <defs>
+                    <linearGradient id="gradBudget" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.5} />
+                    </linearGradient>
+                    <linearGradient id="gradLeads" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.5} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="week" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="budget" orientation="left" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}к`} />
+                  <YAxis yAxisId="leads" orientation="right" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar yAxisId="budget" dataKey="budget" name="Бюджет ₽" fill="url(#gradBudget)" radius={[3, 3, 0, 0]} />
+                  <Bar yAxisId="leads" dataKey="leads" name="Лиды" fill="url(#gradLeads)" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </DashCard>
+
+          {/* Каналы привлечения */}
+          <DashCard title="Каналы привлечения" subtitle="Доля лидов, %">
+            <div className="flex flex-col gap-2">
+              {CHANNEL_DATA.map((c) => (
+                <div key={c.name} className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: c.color }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs text-foreground truncate">{c.name}</span>
+                      <span className="text-xs font-mono font-semibold text-foreground ml-2">{c.value}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${c.value}%`, backgroundColor: c.color }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DashCard>
+
+          {/* Воронка */}
+          <DashCard title="Воронка конверсии" subtitle="Охват → Продажи">
+            <div className="flex flex-col gap-1.5">
+              {FUNNEL_DATA.map((s, i) => {
+                const widths = [100, 60, 32, 20, 14];
+                const colors = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#10b981"];
+                return (
+                  <div key={s.stage} className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground w-12 text-right shrink-0">{s.stage}</span>
+                    <div className="flex-1 h-6 relative flex items-center">
+                      <div
+                        className="h-full rounded flex items-center justify-end pr-2 transition-all"
+                        style={{ width: `${widths[i]}%`, backgroundColor: colors[i] + "33", border: `1px solid ${colors[i]}44` }}
+                      >
+                        <span className="font-mono text-xs font-semibold" style={{ color: colors[i] }}>
+                          {s.value.toLocaleString("ru-RU")}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground w-10 shrink-0">{s.pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex gap-4 pt-1 border-t border-border/50">
+              <div className="text-xs text-muted-foreground">
+                Конверсия <span className="font-mono font-semibold text-foreground">0.06%</span>
               </div>
-            ))}
-          </div>
+              <div className="text-xs text-muted-foreground">
+                CR лид→продажа <span className="font-mono font-semibold text-foreground">19.6%</span>
+              </div>
+            </div>
+          </DashCard>
+
+          {/* CPL vs LTV тренд */}
+          <DashCard title="CPL vs LTV по неделям" subtitle="Стоимость привлечения и ценность клиента">
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={CPL_TREND} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradCPL" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradLTV" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="week" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}к`} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="cpl" name="CPL ₽" stroke="#ef4444" strokeWidth={1.5} fill="url(#gradCPL)" dot={false} />
+                  <Area type="monotone" dataKey="ltv" name="LTV ₽" stroke="#10b981" strokeWidth={1.5} fill="url(#gradLTV)" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </DashCard>
+
+          {/* KPI план/факт */}
+          <DashCard title="KPI: план vs факт" subtitle={PERIODS[period]}>
+            <div className="flex flex-col gap-2">
+              {KPI_DATA.map((k) => {
+                const pct = Math.round((k.fact / k.plan) * 100);
+                const color = pct >= 100 ? "#10b981" : pct >= 70 ? "#f59e0b" : "#ef4444";
+                return (
+                  <div key={k.name} className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-foreground font-medium">{k.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">{k.plan.toLocaleString("ru-RU")} {k.unit}</span>
+                        <span className="font-mono font-semibold" style={{ color }}>{k.fact.toLocaleString("ru-RU")}</span>
+                        <span className="font-mono text-xs" style={{ color }}>{pct}%</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </DashCard>
+
+          {/* ROMI тренд */}
+          <DashCard title="ROMI по неделям" subtitle="Возврат на маркетинговые инвестиции">
+            <div className="flex gap-5 flex-wrap">
+              <StatPill label="Ср. ROMI" value={`${avgROMI}%`} trend="+36%" up icon="Percent" />
+              <StatPill label="Лучшая неделя" value="187%" trend="Нед 4" up icon="Star" />
+            </div>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={WEEKLY_DATA} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradROMI" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="week" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="romi" name="ROMI %" stroke="#3b82f6" strokeWidth={2} fill="url(#gradROMI)" dot={{ fill: "#3b82f6", r: 3 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </DashCard>
+
+          {/* Инфлюенсеры */}
+          <DashCard title="Инфлюенсеры" subtitle="Результаты размещений" className="xl:col-span-2">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/60">
+                    <th className="text-left py-1.5 font-medium text-muted-foreground">Блогер</th>
+                    <th className="text-right py-1.5 font-medium text-muted-foreground">Охват</th>
+                    <th className="text-right py-1.5 font-medium text-muted-foreground">CPM ₽</th>
+                    <th className="text-right py-1.5 font-medium text-muted-foreground">Лиды</th>
+                    <th className="text-center py-1.5 font-medium text-muted-foreground">Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {INFLUENCER_DATA.map((inf) => (
+                    <tr key={inf.name} className="border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="py-2 font-medium text-foreground">{inf.name}</td>
+                      <td className="py-2 text-right font-mono text-foreground">{inf.reach.toLocaleString("ru-RU")}</td>
+                      <td className="py-2 text-right font-mono text-foreground">{inf.cpm.toLocaleString("ru-RU")}</td>
+                      <td className="py-2 text-right font-mono font-semibold text-foreground">{inf.leads}</td>
+                      <td className="py-2 text-center"><StatusBadge status={inf.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-border/60">
+                    <td className="py-1.5 font-semibold text-xs text-muted-foreground">Итого</td>
+                    <td className="py-1.5 text-right font-mono font-bold text-foreground">
+                      {INFLUENCER_DATA.reduce((s, r) => s + r.reach, 0).toLocaleString("ru-RU")}
+                    </td>
+                    <td className="py-1.5 text-right font-mono text-muted-foreground">—</td>
+                    <td className="py-1.5 text-right font-mono font-bold text-foreground">
+                      {INFLUENCER_DATA.reduce((s, r) => s + r.leads, 0)}
+                    </td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </DashCard>
+
         </div>
       </main>
 
-      <footer className="border-t border-border mt-4 py-4">
+      <footer className="border-t border-border mt-8 py-4">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
-          <span>РнП Маркетинг · Дашборд</span>
-          <span>Данные демонстрационные</span>
+          <span>РнП Маркетинг · 2025</span>
+          <span>Данные не сохраняются автоматически</span>
         </div>
       </footer>
     </div>

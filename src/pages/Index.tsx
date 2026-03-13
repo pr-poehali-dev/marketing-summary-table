@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { TabKPI } from "@/components/marketing/TabKPI";
 import { TabReport } from "@/components/marketing/TabCampaigns";
@@ -48,17 +48,45 @@ export default function Index() {
                 placeholder="Год"
               />
             </div>
-            <nav className="flex items-center gap-1">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors">
+            <nav className="flex items-center gap-1 overflow-x-auto">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                <Icon name="LayoutDashboard" size={13} />
+                Дашборд
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors whitespace-nowrap">
                 <Icon name="Table2" size={13} />
                 Основное
               </button>
               <button
-                onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+                onClick={() => navigate("/analytics")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
               >
-                <Icon name="LayoutDashboard" size={13} />
-                Дашборд
+                <Icon name="LineChart" size={13} />
+                Аналитика
+              </button>
+              <button
+                onClick={() => navigate("/economics")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                <Icon name="Calculator" size={13} />
+                Экономика
+              </button>
+              <button
+                onClick={() => navigate("/research")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                <Icon name="Search" size={13} />
+                Исследование
+              </button>
+              <button
+                onClick={() => navigate("/content")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                <Icon name="Film" size={13} />
+                Контент
               </button>
             </nav>
           </div>

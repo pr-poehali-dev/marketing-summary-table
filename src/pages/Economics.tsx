@@ -1,0 +1,400 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Icon from "@/components/ui/icon";
+
+function TopNav({ active }: { active: string }) {
+  const navigate = useNavigate();
+  const items = [
+    { path: "/dashboard", label: "Дашборд", icon: "LayoutDashboard" },
+    { path: "/", label: "Основное", icon: "Table2" },
+    { path: "/analytics", label: "Аналитика", icon: "LineChart" },
+    { path: "/economics", label: "Экономика", icon: "Calculator" },
+    { path: "/research", label: "Исследование", icon: "Search" },
+    { path: "/content", label: "Контент", icon: "Film" },
+  ] as const;
+  return (
+    <nav className="flex items-center gap-1 overflow-x-auto">
+      {items.map((item) => (
+        <button
+          key={item.path}
+          onClick={() => navigate(item.path)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md transition-colors whitespace-nowrap font-medium ${
+            active === item.path ? "text-primary bg-accent" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+        >
+          <Icon name={item.icon as "Activity"} size={13} />
+          {item.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+// ─── Типы ─────────────────────────────────────────────────────────────────
+interface ProductCalc {
+  name: string;
+  price: number;
+  vc: number;
+  cac: number;
+  fc: number;
+  qty: number;
+  ltv: number;
+}
+
+const DEFAULT_PRODUCTS: ProductCalc[] = [
+  { name: "Продукт 1", price: 1500, vc: 800, cac: 2000, fc: 100000, qty: 158, ltv: 4500 },
+  { name: "Продукт 2", price: 1500, vc: 800, cac: 2000, fc: 100000, qty: 157, ltv: 4500 },
+  { name: "Продукт 3", price: 1500, vc: 1000, cac: 200, fc: 100000, qty: 220, ltv: 1500 },
+];
+
+function calcProduct(p: ProductCalc) {
+  const cm = p.price - p.vc;
+  const cmWithCAC = p.cac > 0 ? p.price - p.vc - p.cac / (p.qty || 1) : cm;
+  const bep = p.fc > 0 ? Math.ceil(p.fc / (cm || 1)) : 0;
+  const revenue = p.price * p.qty;
+  const varCosts = p.vc * p.qty;
+  const marginTotal = cm * p.qty;
+  const opProfit = marginTotal - p.fc;
+  const payback = p.cac > 0 && cm > 0 ? +(p.cac / cm).toFixed(1) : 0;
+  const ltvCacRatio = p.cac > 0 ? +(p.ltv / p.cac).toFixed(2) : 0;
+  return { cm, cmWithCAC, bep, revenue, varCosts, marginTotal, opProfit, payback, ltvCacRatio };
+}
+
+function calcClient(p: ProductCalc) {
+  const qpc = 5;
+  const bepClient = p.cac > 0 && p.price - p.vc > 0 ? Math.ceil(p.cac / (p.price - p.vc)) : 0;
+  const revenueClient = qpc * p.price;
+  const varClient = p.vc * qpc + p.cac;
+  const cmClient = p.ltv - varClient;
+  const bepPeriod = p.fc > 0 && p.ltv > 0 ? Math.ceil(p.fc / p.ltv) : 0;
+  return { qpc, bepClient, revenueClient, varClient, cmClient, bepPeriod };
+}
+
+function fmt(n: number, prefix = "") {
+  if (isNaN(n) || !isFinite(n)) return "—";
+  return prefix + n.toLocaleString("ru-RU");
+}
+
+function Red({ children }: { children: React.ReactNode }) {
+  return <span className="text-red-500 font-semibold">{children}</span>;
+}
+function Green({ children }: { children: React.ReactNode }) {
+  return <span className="text-green-600 font-semibold">{children}</span>;
+}
+
+function NumInput({ label, value, onChange, prefix = "", suffix = "" }: {
+  label: string; value: number; onChange: (v: number) => void; prefix?: string; suffix?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <label className="text-xs text-muted-foreground">{label}</label>
+      <div className="flex items-center border border-border rounded-md overflow-hidden bg-background focus-within:ring-1 focus-within:ring-primary/40">
+        {prefix && <span className="px-2 text-xs text-muted-foreground bg-muted border-r border-border">{prefix}</span>}
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="flex-1 px-2 py-1.5 text-sm font-mono text-foreground bg-transparent outline-none min-w-0"
+        />
+        {suffix && <span className="px-2 text-xs text-muted-foreground bg-muted border-l border-border">{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Подстраница-заглушка ──────────────────────────────────────────────────
+function PlaceholderTab({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+      <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center">
+        <Icon name={icon as "Activity"} size={26} className="text-muted-foreground" />
+      </div>
+      <div>
+        <div className="font-semibold text-foreground text-base">{title}</div>
+        <div className="text-sm text-muted-foreground mt-1 max-w-xs">{desc}</div>
+      </div>
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground">
+        <Icon name="Clock" size={11} />
+        Скоро
+      </span>
+    </div>
+  );
+}
+
+const ECON_TABS = [
+  { id: "unit", label: "Юнит-экономика", icon: "Calculator" },
+  { id: "finmodel", label: "Финмодель", icon: "TrendingUp" },
+  { id: "budget", label: "Бюджеты", icon: "Wallet" },
+  { id: "content_budget", label: "Бюджет съёмок", icon: "Film" },
+] as const;
+type EconTabId = typeof ECON_TABS[number]["id"];
+
+export default function Economics() {
+  const [activeTab, setActiveTab] = useState<EconTabId>("unit");
+  const [products, setProducts] = useState<ProductCalc[]>(DEFAULT_PRODUCTS);
+  const [activeProduct, setActiveProduct] = useState(0);
+
+  const p = products[activeProduct];
+  const prod = calcProduct(p);
+  const client = calcClient(p);
+
+  function updateField(field: keyof ProductCalc, value: number | string) {
+    setProducts((prev) =>
+      prev.map((item, i) => i === activeProduct ? { ...item, [field]: value } : item)
+    );
+  }
+
+  function addProduct() {
+    setProducts((prev) => [...prev, { name: `Продукт ${prev.length + 1}`, price: 1000, vc: 500, cac: 0, fc: 50000, qty: 100, ltv: 3000 }]);
+    setActiveProduct(products.length);
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border sticky top-0 z-10">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-12">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                <Icon name="Activity" size={14} className="text-white" />
+              </div>
+              <span className="font-semibold text-sm">РнП Маркетинг</span>
+              <span className="text-muted-foreground text-xs hidden sm:block">·</span>
+              <span className="text-xs text-muted-foreground hidden sm:block">Экономика</span>
+            </div>
+            <TopNav active="/economics" />
+          </div>
+        </div>
+      </header>
+
+      {/* Sub-tabs */}
+      <div className="bg-card border-b border-border">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
+          <div className="flex gap-0 overflow-x-auto">
+            {ECON_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                <Icon name={tab.icon as "Activity"} size={14} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
+        {activeTab === "finmodel" && <PlaceholderTab icon="TrendingUp" title="Финансовая модель" desc="Планирование доходов, расходов и денежного потока на период" />}
+        {activeTab === "budget" && <PlaceholderTab icon="Wallet" title="Бюджеты" desc="Управление маркетинговыми и операционными бюджетами" />}
+        {activeTab === "content_budget" && <PlaceholderTab icon="Film" title="Бюджет съёмок" desc="Планирование бюджетов на создание контента и производство" />}
+
+        {activeTab === "unit" && (
+          <div className="flex flex-col gap-6">
+            {/* Заголовок */}
+            <div className="flex items-start justify-between flex-wrap gap-3">
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Юнит-экономика</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">Мы зарабатываем или бегаем по кругу?</p>
+              </div>
+              <button onClick={addProduct} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                <Icon name="Plus" size={13} />
+                Добавить продукт
+              </button>
+            </div>
+
+            {/* Product tabs */}
+            <div className="flex gap-2 flex-wrap">
+              {products.map((prod, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveProduct(i)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                    activeProduct === i ? "bg-primary text-white border-primary" : "bg-card text-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {prod.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Inputs */}
+              <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                  <Icon name="Settings2" size={15} className="text-primary" />
+                  <span className="font-semibold text-sm text-foreground">Входные данные</span>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Название продукта</label>
+                  <input
+                    className="mt-1 w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-foreground outline-none focus:ring-1 focus:ring-primary/40"
+                    value={p.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <NumInput label="Цена (Rp)" value={p.price} onChange={(v) => updateField("price", v)} suffix="₽" />
+                  <NumInput label="Перем. затраты (VCp)" value={p.vc} onChange={(v) => updateField("vc", v)} suffix="₽" />
+                  <NumInput label="CAC (стоим. привлеч.)" value={p.cac} onChange={(v) => updateField("cac", v)} suffix="₽" />
+                  <NumInput label="LTV (ценность клиента)" value={p.ltv} onChange={(v) => updateField("ltv", v)} suffix="₽" />
+                  <NumInput label="Пост. затраты (FCpt)" value={p.fc} onChange={(v) => updateField("fc", v)} suffix="₽" />
+                  <NumInput label="Кол-во продаж (Qpt)" value={p.qty} onChange={(v) => updateField("qty", v)} suffix="шт." />
+                </div>
+
+                {/* Red flags */}
+                {(prod.ltvCacRatio < 3 && p.cac > 0) || prod.opProfit < 0 ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                      <Icon name="AlertTriangle" size={13} />
+                      Красные флаги
+                    </div>
+                    {prod.opProfit < 0 && (
+                      <div className="text-xs text-red-500">· Операционный убыток: {fmt(prod.opProfit, "")} ₽</div>
+                    )}
+                    {prod.ltvCacRatio < 3 && p.cac > 0 && (
+                      <div className="text-xs text-red-500">· LTV/CAC = {prod.ltvCacRatio} — нужно ≥ 3</div>
+                    )}
+                    {prod.cm < p.cac && p.cac > 0 && (
+                      <div className="text-xs text-red-500">· Маржа ({fmt(prod.cm)} ₽) &lt; CAC ({fmt(p.cac)} ₽)</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-1.5">
+                    <Icon name="CheckCircle" size={13} className="text-green-600" />
+                    <span className="text-xs font-medium text-green-700">Юнит-экономика положительная</span>
+                  </div>
+                )}
+              </div>
+
+              {/* По продукту */}
+              <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                  <Icon name="Package" size={15} className="text-blue-500" />
+                  <span className="font-semibold text-sm text-foreground">По единице продукта</span>
+                </div>
+
+                <div className="bg-muted/40 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border/40">
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">Метрика</th>
+                        <th className="text-right px-3 py-2 font-medium text-muted-foreground">CAC=0</th>
+                        <th className="text-right px-3 py-2 font-medium text-muted-foreground">CAC&gt;0</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: "Цена (Rp)", cac0: fmt(p.price, ""), cacN: fmt(p.price, ""), suffix: "₽" },
+                        { label: "Перем. затраты (VCp)", cac0: fmt(p.vc, ""), cacN: fmt(p.vc + (p.cac > 0 ? p.cac / (p.qty || 1) : 0), ""), suffix: "₽" },
+                        { label: "Маржинальная прибыль", cac0: fmt(prod.cm, ""), cacN: fmt(Math.round(prod.cmWithCAC), ""), suffix: "₽", highlight: true },
+                      ].map((row, i) => (
+                        <tr key={i} className={`border-b border-border/30 ${row.highlight ? "bg-blue-50/50" : ""}`}>
+                          <td className="px-3 py-2 text-muted-foreground">{row.label}</td>
+                          <td className="px-3 py-2 text-right font-mono font-semibold text-foreground">{row.cac0} {row.suffix}</td>
+                          <td className={`px-3 py-2 text-right font-mono font-semibold ${row.highlight ? "text-blue-600" : "text-foreground"}`}>{row.cacN} {row.suffix}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center gap-2 pb-2 border-b border-border/50 pt-2">
+                  <Icon name="Calendar" size={14} className="text-purple-500" />
+                  <span className="font-semibold text-sm text-foreground">По периоду</span>
+                </div>
+
+                <div className="bg-muted/40 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs">
+                    <tbody>
+                      {[
+                        { label: "Пост. затраты (FCpt)", value: fmt(p.fc, ""), suffix: "₽" },
+                        { label: "Безубыт. (BEPpt)", value: fmt(prod.bep, ""), suffix: "шт." },
+                        { label: "Кол-во продаж (Qpt)", value: fmt(p.qty, ""), suffix: "шт.", highlight: p.qty > prod.bep },
+                        { label: "Выручка (Rt)", value: fmt(prod.revenue, ""), suffix: "₽" },
+                        { label: "Перем. затраты (VCt)", value: fmt(prod.varCosts, ""), suffix: "₽" },
+                        { label: "Маржинальная прибыль", value: fmt(prod.marginTotal, ""), suffix: "₽", highlight: true },
+                        { label: "Операц. прибыль (OPt)", value: fmt(prod.opProfit, ""), suffix: "₽", highlight: prod.opProfit > 0, red: prod.opProfit < 0 },
+                      ].map((row, i) => (
+                        <tr key={i} className={`border-b border-border/30 last:border-0 ${row.highlight ? "bg-green-50/50" : row.red ? "bg-red-50/50" : ""}`}>
+                          <td className="px-3 py-2 text-muted-foreground">{row.label}</td>
+                          <td className={`px-3 py-2 text-right font-mono font-semibold ${row.red ? "text-red-500" : row.highlight ? "text-green-600" : "text-foreground"}`}>
+                            {row.value} {row.suffix}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* По клиенту */}
+              <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                  <Icon name="User" size={15} className="text-green-500" />
+                  <span className="font-semibold text-sm text-foreground">По клиенту</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "LTV/CAC", value: p.cac > 0 ? prod.ltvCacRatio : "—", good: prod.ltvCacRatio >= 3, suffix: "x" },
+                    { label: "Payback", value: prod.payback || "—", good: prod.payback <= 3 && prod.payback > 0, suffix: "ед." },
+                    { label: "LTV", value: fmt(p.ltv), good: p.ltv > p.cac, suffix: "₽" },
+                    { label: "CAC", value: fmt(p.cac), good: false, suffix: "₽" },
+                  ].map((kpi) => (
+                    <div key={kpi.label} className={`rounded-lg p-3 border ${kpi.good ? "bg-green-50 border-green-200" : "bg-muted/40 border-border/40"}`}>
+                      <div className="text-xs text-muted-foreground">{kpi.label}</div>
+                      <div className={`font-mono text-xl font-bold mt-0.5 ${kpi.good ? "text-green-600" : "text-foreground"}`}>
+                        {kpi.value} <span className="text-xs font-normal">{kpi.suffix}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-muted/40 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border/40">
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">По клиенту</th>
+                        <th className="text-right px-3 py-2 font-medium text-muted-foreground">Значение</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: "Ед. продукта на клиента (Qpc)", value: fmt(client.qpc, ""), suffix: "шт." },
+                        { label: "Безубыт. по кол-ву прод.", value: fmt(client.bepClient, ""), suffix: "шт." },
+                        { label: "Доход на клиента (Rc)", value: fmt(client.revenueClient, ""), suffix: "₽" },
+                        { label: "Перем. затраты + CAC", value: fmt(client.varClient, ""), suffix: "₽" },
+                        { label: "Маржа на клиента (CMcc)", value: fmt(client.cmClient, ""), suffix: "₽", highlight: client.cmClient > 0, red: client.cmClient < 0 },
+                        { label: "Безубыт. по клиентам", value: fmt(client.bepPeriod, ""), suffix: "чел." },
+                      ].map((row, i) => (
+                        <tr key={i} className={`border-b border-border/30 last:border-0 ${row.highlight ? "bg-green-50/50" : (row as { red?: boolean }).red ? "bg-red-50/50" : ""}`}>
+                          <td className="px-3 py-2 text-muted-foreground">{row.label}</td>
+                          <td className={`px-3 py-2 text-right font-mono font-semibold ${(row as { red?: boolean }).red ? "text-red-500" : row.highlight ? "text-green-600" : "text-foreground"}`}>
+                            {row.value} {row.suffix}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <footer className="border-t border-border mt-8 py-4">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
+          <span>РнП Маркетинг · Экономика · 2025</span>
+          <span>Данные не сохраняются автоматически</span>
+        </div>
+      </footer>
+    </div>
+  );
+}
