@@ -4,212 +4,310 @@ import Icon from "@/components/ui/icon";
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
 type WeekData = { plan: string; fact: string };
-type RowData = {
+
+type RowDef = {
   id: string;
   label: string;
   unit: string;
-  monthPlan: string;
-  monthFact: string;
-  weeks: WeekData[]; // 4 weeks
-  isHeader?: boolean;
   isConversion?: boolean;
+  autoFrom?: [string, string]; // [numeratorId, denominatorId] → auto %
 };
 
-// ─── INITIAL DATA ─────────────────────────────────────────────────────────────
+type RowState = {
+  def: RowDef;
+  monthPlan: string;
+  monthFact: string;
+  weeks: WeekData[];
+};
 
-function makeWeeks(): WeekData[] {
-  return [
-    { plan: "", fact: "" },
-    { plan: "", fact: "" },
-    { plan: "", fact: "" },
-    { plan: "", fact: "" },
-  ];
-}
+type SectionState = {
+  id: string;
+  title: string;
+  rows: RowState[];
+  collapsed: boolean;
+};
 
-const SECTIONS: { title: string; rows: Omit<RowData, "weeks">[] }[] = [
-  {
-    title: "Маркетинг общий",
-    rows: [
-      { id: "budget", label: "Рекламный бюджет", unit: "₽", monthPlan: "", monthFact: "", isConversion: false },
-      { id: "reach", label: "Количество охватов", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "cv_sub", label: "CV конверсия в подписку", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "subs", label: "Количество подписчиков", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "cps", label: "Цена подписчика", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "shows", label: "Количество показов посадочной", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "cv_click", label: "CV конверсия в клик", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "clicks", label: "Количество кликов", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "cv_lead", label: "CV конверсия в лид", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "leads", label: "Кол-во лидов", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "cv_qual", label: "CV конверсия в квал", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "ql", label: "Кол-во КВАЛ лидов", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "cv_sale", label: "CV конверсия в продажу", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "sales", label: "Количество продаж", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "revenue", label: "Оборот с рекламы", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "avg_check", label: "Средний чек", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "cpc", label: "Цена клика", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "cpl", label: "Цена лида", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "cpql", label: "Цена квал лида", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "pay_pct", label: "Процент в оплату", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "romi", label: "ROMI", unit: "%", monthPlan: "", monthFact: "" },
-      { id: "roi", label: "ROI", unit: "%", monthPlan: "", monthFact: "" },
-    ],
-  },
-  {
-    title: "Telegram — Посевы — Воронка",
-    rows: [
-      { id: "tg_budget", label: "Рекламный бюджет", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_cpm", label: "CPM", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_reach", label: "Количество охватов", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "tg_cv_click", label: "CV конверсия в клик", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "tg_cv_lead", label: "CV конверсия в лид", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "tg_cv_qual", label: "CV конверсия в квал", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "tg_cv_sale", label: "CV конверсия в продажу", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "tg_clicks", label: "Количество кликов", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "tg_leads", label: "Количество лидов", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "tg_qual", label: "Количество в квал", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "tg_sales", label: "Количество в продажу", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "tg_avg", label: "Средний чек", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_sum", label: "Сумма в продажу", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_cpc", label: "Цена клика", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_cpl", label: "Цена лида", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_cpq", label: "Цена квала", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_cps2", label: "Цена в продажу", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "tg_drr", label: "ДРР", unit: "%", monthPlan: "", monthFact: "" },
-      { id: "tg_cv_sub", label: "Конверсия в подписку", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "tg_subs", label: "Количество в подписку", unit: "шт.", monthPlan: "", monthFact: "" },
-    ],
-  },
-  {
-    title: "Telegram Ads",
-    rows: [
-      { id: "ta_budget", label: "Рекламный бюджет", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "ta_reach", label: "Количество охватов", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "ta_cv_sub", label: "CV конверсия в подписку", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "ta_subs", label: "Количество подписчиков", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "ta_cps", label: "Цена подписчика", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "ta_pct_reach", label: "Процент охватов от подписчика", unit: "%", monthPlan: "", monthFact: "" },
-      { id: "ta_new", label: "Новые охваты", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "ta_apps", label: "Заявки в АП", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "ta_reach_pct", label: "Процент доходимости до закрытого канала", unit: "%", monthPlan: "", monthFact: "" },
-      { id: "ta_do", label: "Количество доходимости", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "ta_ap_pct", label: "Процент в АП от подписчиков", unit: "%", monthPlan: "", monthFact: "" },
-    ],
-  },
-  {
-    title: "YouTube",
-    rows: [
-      { id: "yt_budget", label: "Рекламный бюджет", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "yt_views", label: "Просмотры", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yt_reach", label: "Охват", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "yt_cv_click", label: "CV конверсия в клик", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "yt_clicks", label: "Клики", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yt_cv_lead", label: "CV конверсия в лид", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "yt_leads", label: "Лиды", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yt_cpl", label: "Цена лида", unit: "₽", monthPlan: "", monthFact: "" },
-    ],
-  },
-  {
-    title: "Яндекс.Директ",
-    rows: [
-      { id: "yd_budget", label: "Рекламный бюджет", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "yd_shows", label: "Показы", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yd_clicks", label: "Клики", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yd_ctr", label: "CTR", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "yd_cpc", label: "Цена клика", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "yd_cv_lead", label: "CV конверсия в лид", unit: "%", monthPlan: "", monthFact: "", isConversion: true },
-      { id: "yd_leads", label: "Лиды", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "yd_cpl", label: "Цена лида", unit: "₽", monthPlan: "", monthFact: "" },
-    ],
-  },
-  {
-    title: "Контент / SEO / Органика",
-    rows: [
-      { id: "seo_traffic", label: "Органический трафик", unit: "чел.", monthPlan: "", monthFact: "" },
-      { id: "seo_pos", label: "Позиции в поиске (топ-10)", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "seo_leads", label: "Лиды из органики", unit: "шт.", monthPlan: "", monthFact: "" },
-      { id: "seo_cpl", label: "Цена лида", unit: "₽", monthPlan: "", monthFact: "" },
-      { id: "seo_pub", label: "Публикаций контента", unit: "шт.", monthPlan: "", monthFact: "" },
-    ],
-  },
+// ─── SECTION TEMPLATES ────────────────────────────────────────────────────────
+
+const GENERAL_ROWS: RowDef[] = [
+  { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+  { id: "reach", label: "Охваты", unit: "чел." },
+  { id: "shows", label: "Показы посадочной", unit: "шт." },
+  { id: "cv_click", label: "CV → клик", unit: "%", isConversion: true, autoFrom: ["clicks", "shows"] },
+  { id: "clicks", label: "Клики", unit: "шт." },
+  { id: "cv_lead", label: "CV → лид", unit: "%", isConversion: true, autoFrom: ["leads", "clicks"] },
+  { id: "leads", label: "Лиды", unit: "шт." },
+  { id: "cv_qual", label: "CV → квал", unit: "%", isConversion: true, autoFrom: ["ql", "leads"] },
+  { id: "ql", label: "Квал лиды", unit: "шт." },
+  { id: "cv_sale", label: "CV → продажа", unit: "%", isConversion: true, autoFrom: ["sales", "ql"] },
+  { id: "sales", label: "Продажи", unit: "шт." },
+  { id: "revenue", label: "Оборот с рекламы", unit: "₽" },
+  { id: "avg_check", label: "Средний чек", unit: "₽" },
+  { id: "cpc", label: "Цена клика", unit: "₽" },
+  { id: "cpl", label: "Цена лида", unit: "₽" },
+  { id: "cpql", label: "Цена квал лида", unit: "₽" },
+  { id: "romi", label: "ROMI", unit: "%" },
+  { id: "roi", label: "ROI", unit: "%" },
 ];
+
+const CHANNEL_TEMPLATES: Record<string, RowDef[]> = {
+  "Telegram — Посевы": [
+    { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+    { id: "cpm", label: "CPM", unit: "₽" },
+    { id: "reach", label: "Охваты", unit: "чел." },
+    { id: "cv_click", label: "CV → клик", unit: "%", isConversion: true, autoFrom: ["clicks", "reach"] },
+    { id: "clicks", label: "Клики", unit: "шт." },
+    { id: "cv_lead", label: "CV → лид", unit: "%", isConversion: true, autoFrom: ["leads", "clicks"] },
+    { id: "leads", label: "Лиды", unit: "шт." },
+    { id: "cv_qual", label: "CV → квал", unit: "%", isConversion: true, autoFrom: ["qual", "leads"] },
+    { id: "qual", label: "Квалы", unit: "шт." },
+    { id: "cv_sale", label: "CV → продажа", unit: "%", isConversion: true, autoFrom: ["sales", "qual"] },
+    { id: "sales", label: "Продажи", unit: "шт." },
+    { id: "avg_check", label: "Средний чек", unit: "₽" },
+    { id: "sum_sales", label: "Сумма продаж", unit: "₽" },
+    { id: "cpc", label: "Цена клика", unit: "₽" },
+    { id: "cpl", label: "Цена лида", unit: "₽" },
+    { id: "cpq", label: "Цена квала", unit: "₽" },
+    { id: "cps", label: "Цена продажи", unit: "₽" },
+    { id: "drr", label: "ДРР", unit: "%" },
+    { id: "cv_sub", label: "CV → подписка", unit: "%", isConversion: true },
+    { id: "subs", label: "Подписчики", unit: "шт." },
+  ],
+  "Telegram Ads": [
+    { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+    { id: "reach", label: "Охваты", unit: "чел." },
+    { id: "cv_sub", label: "CV → подписка", unit: "%", isConversion: true, autoFrom: ["subs", "reach"] },
+    { id: "subs", label: "Подписчики", unit: "шт." },
+    { id: "cps", label: "Цена подписчика", unit: "₽" },
+    { id: "new_reach", label: "Новые охваты", unit: "чел." },
+    { id: "apps", label: "Заявки в АП", unit: "шт." },
+    { id: "reach_pct", label: "% доходимости до канала", unit: "%" },
+    { id: "do_count", label: "Доходимость (кол-во)", unit: "шт." },
+    { id: "ap_pct", label: "% в АП от подписчиков", unit: "%" },
+  ],
+  "YouTube": [
+    { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+    { id: "views", label: "Просмотры", unit: "шт." },
+    { id: "reach", label: "Охват", unit: "чел." },
+    { id: "cv_click", label: "CV → клик", unit: "%", isConversion: true, autoFrom: ["clicks", "views"] },
+    { id: "clicks", label: "Клики", unit: "шт." },
+    { id: "cv_lead", label: "CV → лид", unit: "%", isConversion: true, autoFrom: ["leads", "clicks"] },
+    { id: "leads", label: "Лиды", unit: "шт." },
+    { id: "cpl", label: "Цена лида", unit: "₽" },
+  ],
+  "Яндекс.Директ": [
+    { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+    { id: "shows", label: "Показы", unit: "шт." },
+    { id: "clicks", label: "Клики", unit: "шт." },
+    { id: "ctr", label: "CTR", unit: "%", isConversion: true, autoFrom: ["clicks", "shows"] },
+    { id: "cpc", label: "Цена клика", unit: "₽" },
+    { id: "cv_lead", label: "CV → лид", unit: "%", isConversion: true, autoFrom: ["leads", "clicks"] },
+    { id: "leads", label: "Лиды", unit: "шт." },
+    { id: "cpl", label: "Цена лида", unit: "₽" },
+  ],
+  "ВКонтакте": [
+    { id: "budget", label: "Рекламный бюджет", unit: "₽" },
+    { id: "reach", label: "Охваты", unit: "чел." },
+    { id: "clicks", label: "Клики", unit: "шт." },
+    { id: "ctr", label: "CTR", unit: "%", isConversion: true, autoFrom: ["clicks", "reach"] },
+    { id: "cpc", label: "Цена клика", unit: "₽" },
+    { id: "leads", label: "Лиды", unit: "шт." },
+    { id: "cpl", label: "Цена лида", unit: "₽" },
+  ],
+  "SEO / Органика": [
+    { id: "traffic", label: "Органический трафик", unit: "чел." },
+    { id: "top10", label: "Позиций в топ-10", unit: "шт." },
+    { id: "leads", label: "Лиды из органики", unit: "шт." },
+    { id: "cpl", label: "Цена лида", unit: "₽" },
+    { id: "articles", label: "Публикаций контента", unit: "шт." },
+  ],
+  "Email / Рассылки": [
+    { id: "sent", label: "Отправлено писем", unit: "шт." },
+    { id: "open_rate", label: "Open Rate", unit: "%", isConversion: true, autoFrom: ["opened", "sent"] },
+    { id: "opened", label: "Открытий", unit: "шт." },
+    { id: "click_rate", label: "Click Rate", unit: "%", isConversion: true, autoFrom: ["clicks", "opened"] },
+    { id: "clicks", label: "Кликов", unit: "шт." },
+    { id: "leads", label: "Лиды", unit: "шт." },
+  ],
+  "Пустой канал": [
+    { id: "budget", label: "Бюджет", unit: "₽" },
+    { id: "reach", label: "Охват", unit: "чел." },
+    { id: "leads", label: "Лиды", unit: "шт." },
+    { id: "sales", label: "Продажи", unit: "шт." },
+  ],
+};
+
+const CHANNEL_LIST = Object.keys(CHANNEL_TEMPLATES);
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
-function pct(plan: string, fact: string): { val: number | null; color: string; label: string } {
-  const p = parseFloat(plan.replace(/\s/g, "").replace(",", "."));
-  const f = parseFloat(fact.replace(/\s/g, "").replace(",", "."));
-  if (isNaN(p) || isNaN(f) || p === 0) return { val: null, color: "text-muted-foreground", label: "—" };
-  const v = Math.round((f / p) * 100);
-  const color = v >= 100 ? "text-emerald-600 font-semibold" : v >= 70 ? "text-amber-600" : "text-red-500";
-  return { val: v, color, label: `${v}%` };
+function makeWeeks(): WeekData[] {
+  return Array.from({ length: 4 }, () => ({ plan: "", fact: "" }));
 }
 
-function NumCell({
-  value, onChange, placeholder = "", isConversion = false,
-}: { value: string; onChange: (v: string) => void; placeholder?: string; isConversion?: boolean }) {
+function makeSection(id: string, title: string, defs: RowDef[]): SectionState {
+  return {
+    id,
+    title,
+    rows: defs.map((def) => ({ def, monthPlan: "", monthFact: "", weeks: makeWeeks() })),
+    collapsed: false,
+  };
+}
+
+function calcAuto(rows: RowState[], def: RowDef, field: "month" | { wi: number }): string | null {
+  if (!def.autoFrom) return null;
+  const [numId, denId] = def.autoFrom;
+  const num = rows.find((r) => r.def.id === numId);
+  const den = rows.find((r) => r.def.id === denId);
+  if (!num || !den) return null;
+  let n: number, d: number;
+  if (field === "month") {
+    n = parseFloat(num.monthFact.replace(/\s/g, "").replace(",", "."));
+    d = parseFloat(den.monthFact.replace(/\s/g, "").replace(",", "."));
+  } else {
+    const wi = field.wi;
+    n = parseFloat((num.weeks[wi]?.fact ?? "").replace(/\s/g, "").replace(",", "."));
+    d = parseFloat((den.weeks[wi]?.fact ?? "").replace(/\s/g, "").replace(",", "."));
+  }
+  if (isNaN(n) || isNaN(d) || d === 0) return null;
+  return ((n / d) * 100).toFixed(1) + "%";
+}
+
+function pctBadge(plan: string, fact: string): { label: string; color: string } | null {
+  const p = parseFloat(plan.replace(/\s/g, "").replace(",", "."));
+  const f = parseFloat(fact.replace(/\s/g, "").replace(",", "."));
+  if (isNaN(p) || isNaN(f) || p === 0) return null;
+  const v = Math.round((f / p) * 100);
+  const color = v >= 100 ? "text-emerald-600 font-bold" : v >= 70 ? "text-amber-600 font-semibold" : "text-red-500 font-semibold";
+  return { label: `${v}%`, color };
+}
+
+const WEEK_LABELS = ["Нед 1", "Нед 2", "Нед 3", "Нед 4"];
+
+// ─── CELLS ────────────────────────────────────────────────────────────────────
+
+function PlanCell({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <input
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={`w-full bg-transparent border-0 outline-none text-xs font-mono px-1.5 py-1 text-right focus:bg-accent/60 rounded transition-colors placeholder:text-muted-foreground/30 ${isConversion ? "text-blue-700 dark:text-blue-400" : ""}`}
+      placeholder="план"
+      className="w-full bg-blue-50/70 dark:bg-blue-950/20 border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-blue-100 dark:focus:bg-blue-900/30 rounded transition-colors placeholder:text-blue-300/50 text-blue-900 dark:text-blue-200"
     />
   );
 }
 
-// ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
+function FactCell({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="факт"
+      className="w-full bg-white dark:bg-background border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-accent/60 rounded transition-colors placeholder:text-muted-foreground/25"
+    />
+  );
+}
 
-type Collapsed = Record<string, boolean>;
+function AutoCell({ value }: { value: string | null }) {
+  return (
+    <div
+      className="px-1.5 py-[3px] text-right text-xs font-mono text-muted-foreground/70 bg-muted/25 rounded italic select-none"
+      title="Считается автоматически из введённых данных"
+    >
+      {value ?? "—"}
+    </div>
+  );
+}
 
-const WEEK_LABELS = ["Нед 1", "Нед 2", "Нед 3", "Нед 4"];
+function PctCell({ plan, fact }: { plan: string; fact: string }) {
+  const r = pctBadge(plan, fact);
+  if (!r) return <span className="text-muted-foreground/25 text-xs">—</span>;
+  return <span className={`text-xs font-mono ${r.color}`}>{r.label}</span>;
+}
 
-type PulseRow = RowData;
-type SectionState = { title: string; rows: PulseRow[] };
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 
-function initState(): SectionState[] {
-  return SECTIONS.map((s) => ({
-    title: s.title,
-    rows: s.rows.map((r) => ({ ...r, weeks: makeWeeks() })),
-  }));
+function initSections(): SectionState[] {
+  return [
+    makeSection("general", "Маркетинг общий", GENERAL_ROWS),
+    makeSection("tg_sevy", "Telegram — Посевы", CHANNEL_TEMPLATES["Telegram — Посевы"]),
+    makeSection("tg_ads", "Telegram Ads", CHANNEL_TEMPLATES["Telegram Ads"]),
+    makeSection("yt", "YouTube", CHANNEL_TEMPLATES["YouTube"]),
+    makeSection("yandex", "Яндекс.Директ", CHANNEL_TEMPLATES["Яндекс.Директ"]),
+    makeSection("seo", "SEO / Органика", CHANNEL_TEMPLATES["SEO / Органика"]),
+  ];
 }
 
 export function TabPulse() {
   const [month, setMonth] = useState("Март 2025");
-  const [sections, setSections] = useState<SectionState[]>(initState);
-  const [collapsed, setCollapsed] = useState<Collapsed>({});
+  const [sections, setSections] = useState<SectionState[]>(initSections);
   const [showWeeks, setShowWeeks] = useState(true);
-  const [activeWeek, setActiveWeek] = useState(0); // which week is "current"
+  const [activeWeek, setActiveWeek] = useState(0);
+  const [showAddChannel, setShowAddChannel] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
 
-  const toggleSection = (title: string) =>
-    setCollapsed((c) => ({ ...c, [title]: !c[title] }));
+  const toggleCollapse = (id: string) =>
+    setSections((ss) => ss.map((s) => s.id === id ? { ...s, collapsed: !s.collapsed } : s));
 
-  const updateRow = (
-    sIdx: number, rIdx: number,
-    field: "monthPlan" | "monthFact" | "weekPlan" | "weekFact",
-    weekIdx: number,
-    val: string,
-  ) => {
+  const updateMonth = (sId: string, rIdx: number, field: "monthPlan" | "monthFact", val: string) =>
     setSections((ss) =>
-      ss.map((s, si) =>
-        si !== sIdx ? s : {
-          ...s,
-          rows: s.rows.map((r, ri) => {
-            if (ri !== rIdx) return r;
-            if (field === "monthPlan") return { ...r, monthPlan: val };
-            if (field === "monthFact") return { ...r, monthFact: val };
-            const weeks = r.weeks.map((w, wi) =>
-              wi !== weekIdx ? w :
-                field === "weekPlan" ? { ...w, plan: val } : { ...w, fact: val }
-            );
-            return { ...r, weeks };
-          }),
-        }
-      )
+      ss.map((s) => s.id !== sId ? s : {
+        ...s,
+        rows: s.rows.map((r, i) => i !== rIdx ? r : { ...r, [field]: val }),
+      })
     );
+
+  const updateWeek = (sId: string, rIdx: number, wi: number, field: "plan" | "fact", val: string) =>
+    setSections((ss) =>
+      ss.map((s) => s.id !== sId ? s : {
+        ...s,
+        rows: s.rows.map((r, i) =>
+          i !== rIdx ? r : {
+            ...r,
+            weeks: r.weeks.map((w, wi2) => wi2 !== wi ? w : { ...w, [field]: val }),
+          }
+        ),
+      })
+    );
+
+  const addRow = (sId: string) =>
+    setSections((ss) =>
+      ss.map((s) => s.id !== sId ? s : {
+        ...s,
+        rows: [...s.rows, {
+          def: { id: `row_${Date.now()}`, label: "Новая метрика", unit: "шт." },
+          monthPlan: "", monthFact: "", weeks: makeWeeks(),
+        }],
+      })
+    );
+
+  const removeRow = (sId: string, rIdx: number) =>
+    setSections((ss) =>
+      ss.map((s) => s.id !== sId ? s : { ...s, rows: s.rows.filter((_, i) => i !== rIdx) })
+    );
+
+  const removeSection = (id: string) =>
+    setSections((ss) => ss.filter((s) => s.id !== id));
+
+  const renameSection = (id: string, title: string) =>
+    setSections((ss) => ss.map((s) => s.id === id ? { ...s, title } : s));
+
+  const updateLabel = (sId: string, rIdx: number, label: string) =>
+    setSections((ss) =>
+      ss.map((s) => s.id !== sId ? s : {
+        ...s,
+        rows: s.rows.map((r, i) => i !== rIdx ? r : { ...r, def: { ...r.def, label } }),
+      })
+    );
+
+  const addChannel = (templateName: string) => {
+    const defs = CHANNEL_TEMPLATES[templateName] ?? CHANNEL_TEMPLATES["Пустой канал"];
+    setSections((ss) => [...ss, makeSection(`ch_${Date.now()}`, templateName, defs)]);
+    setShowAddChannel(false);
   };
 
-  const weekCount = showWeeks ? 4 : 0;
-  const totalCols = 4 + weekCount * 3; // row# + metric + monthPlan+Fact+% + weeks*(plan+fact+%)
+  const weekColSpan = showWeeks ? 4 * 3 : 0;
+  const totalSpan = 3 + weekColSpan; // plan+fact+% for month, then weeks
 
   return (
     <div className="animate-fade-in">
@@ -217,11 +315,11 @@ export function TabPulse() {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="text-base font-semibold">Рука на Пульсе</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Общий маркетинг и каналы — план / факт / % выполнения</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Все каналы — план / факт / % выполнения</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <input
-            className="border border-border rounded px-2 py-1.5 text-sm font-medium w-36 focus:outline-none focus:ring-1 focus:ring-primary bg-card"
+            className="border border-border rounded px-2 py-1.5 text-sm font-medium w-32 focus:outline-none focus:ring-1 focus:ring-primary bg-card"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             placeholder="Месяц год"
@@ -233,168 +331,280 @@ export function TabPulse() {
             <Icon name="CalendarDays" size={13} />
             Недели
           </button>
-          {showWeeks && (
-            <div className="flex items-center gap-1">
-              {WEEK_LABELS.map((l, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveWeek(i)}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${activeWeek === i ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          )}
+          {showWeeks && WEEK_LABELS.map((l, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveWeek(i)}
+              className={`px-2.5 py-1 text-xs rounded transition-colors border ${activeWeek === i ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "text-muted-foreground border-transparent hover:text-foreground"}`}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="text-xs border-collapse" style={{ minWidth: showWeeks ? 1100 : 600 }}>
-          {/* THEAD */}
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 mb-3 px-1">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-block w-12 h-4 rounded bg-blue-50 dark:bg-blue-950/30 border border-blue-200/80" />
+          Ввод плана
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-block w-12 h-4 rounded bg-white dark:bg-background border border-border" />
+          Ввод факта
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-block w-12 h-4 rounded bg-muted/30 border border-border" />
+          <Icon name="Zap" size={10} className="text-muted-foreground/50" />
+          Автоматически
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400">
+          <span className="w-2 h-2 rounded-full bg-violet-400" />
+          Конверсия (CV)
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table
+          className="w-full text-xs border-collapse bg-card"
+          style={{ minWidth: showWeeks ? 1080 : 580 }}
+        >
           <thead>
-            {/* Month header */}
             <tr className="bg-[#1a3557] text-white">
-              <th className="w-7 px-2 py-2 border-b border-white/10" rowSpan={2} />
-              <th className="text-left px-3 py-2 border-b border-white/10 font-semibold text-sm" rowSpan={2}>
-                Ключевые метрики
+              <th className="w-7 py-2" rowSpan={2} />
+              <th className="text-left px-3 py-2 font-semibold min-w-52" rowSpan={2}>
+                Метрика
               </th>
-              <th className="px-3 py-2 text-center font-semibold border-b border-white/10 border-l border-l-white/20" colSpan={3}>
+              {/* Month group */}
+              <th
+                colSpan={3}
+                className="text-center px-2 py-1.5 font-semibold border-l border-white/10 text-sm"
+              >
                 {month}
               </th>
+              {/* Week groups */}
               {showWeeks && WEEK_LABELS.map((l, i) => (
                 <th
                   key={i}
                   colSpan={3}
-                  className={`px-3 py-2 text-center font-medium border-b border-white/10 border-l border-l-white/20 ${i === activeWeek ? "bg-[#2a4d77]" : "opacity-70"}`}
+                  className={`text-center px-2 py-1.5 font-medium border-l border-white/10 ${i === activeWeek ? "bg-white/10" : "opacity-50"}`}
                 >
                   {l}
                 </th>
               ))}
+              <th className="w-7 py-2" rowSpan={2} />
             </tr>
-            <tr className="bg-[#1a3557] text-white/80">
-              <th className="w-24 px-2 py-1.5 text-center font-medium border-b border-white/10 border-l border-l-white/20">План</th>
-              <th className="w-24 px-2 py-1.5 text-center font-medium border-b border-white/10">Факт</th>
-              <th className="w-14 px-2 py-1.5 text-center font-medium border-b border-white/10">%</th>
+            <tr className="bg-[#1a3557] text-white/80 text-[11px]">
+              <th className="w-24 px-1.5 py-1 text-center border-l border-white/10 border-t border-white/10 text-blue-200">
+                План
+              </th>
+              <th className="w-24 px-1.5 py-1 text-center border-t border-white/10">Факт</th>
+              <th className="w-12 px-1 py-1 text-center border-t border-white/10 text-white/50">%</th>
               {showWeeks && WEEK_LABELS.map((_, i) => (
                 <>
-                  <th key={`${i}p`} className={`w-20 px-2 py-1.5 text-center font-medium border-b border-white/10 border-l border-l-white/20 ${i === activeWeek ? "" : "opacity-70"}`}>План</th>
-                  <th key={`${i}f`} className={`w-20 px-2 py-1.5 text-center font-medium border-b border-white/10 ${i === activeWeek ? "" : "opacity-70"}`}>Факт</th>
-                  <th key={`${i}pct`} className={`w-12 px-2 py-1.5 text-center font-medium border-b border-white/10 ${i === activeWeek ? "" : "opacity-70"}`}>%</th>
+                  <th key={`${i}p`} className={`w-20 px-1.5 py-1 text-center border-l border-white/10 border-t border-white/10 text-blue-200 ${i === activeWeek ? "" : "opacity-50"}`}>П</th>
+                  <th key={`${i}f`} className={`w-20 px-1.5 py-1 text-center border-t border-white/10 ${i === activeWeek ? "" : "opacity-50"}`}>Ф</th>
+                  <th key={`${i}pct`} className={`w-10 px-1 py-1 text-center border-t border-white/10 text-white/50 ${i === activeWeek ? "" : "opacity-50"}`}>%</th>
                 </>
               ))}
             </tr>
           </thead>
 
-          {/* BODY */}
           <tbody>
-            {sections.map((section, sIdx) => {
-              const isCollapsed = collapsed[section.title];
-              return (
-                <>
-                  {/* Section header row */}
-                  <tr
-                    key={`header-${sIdx}`}
-                    className="bg-[#2c3e50] text-white cursor-pointer hover:bg-[#34495e] transition-colors"
-                    onClick={() => toggleSection(section.title)}
+            {sections.map((section) => (
+              <>
+                {/* Section header */}
+                <tr key={`h_${section.id}`} className="bg-[#2c3e50] text-white group/sec">
+                  <td
+                    className="px-2 py-1.5 text-center cursor-pointer"
+                    onClick={() => toggleCollapse(section.id)}
                   >
-                    <td className="px-2 py-1.5 text-center">
-                      <Icon
-                        name={isCollapsed ? "ChevronRight" : "ChevronDown"}
-                        size={12}
-                        className="text-white/70 inline"
-                      />
-                    </td>
-                    <td
-                      className="px-3 py-1.5 font-semibold text-sm"
-                      colSpan={totalCols}
-                    >
-                      {section.title}
-                    </td>
-                  </tr>
-
-                  {/* Data rows */}
-                  {!isCollapsed && section.rows.map((row, rIdx) => {
-                    const mPct = pct(row.monthPlan, row.monthFact);
-                    const isEven = rIdx % 2 === 0;
-                    return (
-                      <tr
-                        key={`${sIdx}-${rIdx}`}
-                        className={`${isEven ? "bg-background" : "bg-muted/20"} hover:bg-accent/40 transition-colors`}
+                    <Icon
+                      name={section.collapsed ? "ChevronRight" : "ChevronDown"}
+                      size={12}
+                      className="text-white/60 inline"
+                    />
+                  </td>
+                  <td colSpan={totalSpan + 1} className="py-1.5">
+                    <div className="flex items-center gap-2 pr-3">
+                      {editingTitle === section.id ? (
+                        <input
+                          autoFocus
+                          className="bg-white/10 text-white text-sm font-semibold px-2 py-0.5 rounded outline-none border border-white/20 w-64"
+                          value={section.title}
+                          onChange={(e) => renameSection(section.id, e.target.value)}
+                          onBlur={() => setEditingTitle(null)}
+                          onKeyDown={(e) => e.key === "Enter" && setEditingTitle(null)}
+                        />
+                      ) : (
+                        <span
+                          className="text-sm font-semibold cursor-pointer flex-1"
+                          onClick={() => toggleCollapse(section.id)}
+                        >
+                          {section.title}
+                        </span>
+                      )}
+                      <button
+                        title="Переименовать"
+                        onClick={() => setEditingTitle(section.id)}
+                        className="opacity-0 group-hover/sec:opacity-50 hover:!opacity-100 transition-opacity"
                       >
-                        <td className="px-2 py-0.5 text-center text-muted-foreground/40 border-b border-border/40">
-                          {rIdx + 1}
-                        </td>
-                        <td className={`px-3 py-0.5 border-b border-border/40 whitespace-nowrap ${row.isConversion ? "text-blue-700 dark:text-blue-400 font-medium" : ""}`}>
-                          {row.label}
-                        </td>
-                        {/* Month plan */}
-                        <td className="border-b border-border/40 border-l border-l-border/40">
-                          <NumCell
-                            value={row.monthPlan}
-                            onChange={(v) => updateRow(sIdx, rIdx, "monthPlan", 0, v)}
-                            isConversion={row.isConversion}
-                          />
-                        </td>
-                        {/* Month fact */}
-                        <td className="border-b border-border/40">
-                          <NumCell
-                            value={row.monthFact}
-                            onChange={(v) => updateRow(sIdx, rIdx, "monthFact", 0, v)}
-                            isConversion={row.isConversion}
-                          />
-                        </td>
-                        {/* Month % */}
-                        <td className="border-b border-border/40 text-center px-1">
-                          {mPct.val !== null ? (
-                            <span className={`text-xs font-mono ${mPct.color}`}>{mPct.label}</span>
-                          ) : (
-                            <span className="text-muted-foreground/30 text-xs">—</span>
+                        <Icon name="Pencil" size={11} />
+                      </button>
+                      {section.id !== "general" && (
+                        <button
+                          title="Удалить канал"
+                          onClick={() => removeSection(section.id)}
+                          className="opacity-0 group-hover/sec:opacity-50 hover:!opacity-100 transition-opacity text-red-300"
+                        >
+                          <Icon name="Trash2" size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td />
+                </tr>
+
+                {/* Data rows */}
+                {!section.collapsed && section.rows.map((row, rIdx) => {
+                  const isAuto = !!row.def.autoFrom;
+                  const isConv = row.def.isConversion;
+                  const autoMonth = isAuto ? calcAuto(section.rows, row.def, "month") : null;
+                  const isEven = rIdx % 2 === 0;
+
+                  return (
+                    <tr
+                      key={`${section.id}_${rIdx}`}
+                      className={`group/row transition-colors ${isEven ? "bg-background" : "bg-muted/10"} hover:bg-accent/25`}
+                    >
+                      {/* row # */}
+                      <td className="py-0.5 px-1 text-center text-[10px] text-muted-foreground/25 border-b border-border/30">
+                        {rIdx + 1}
+                      </td>
+
+                      {/* label */}
+                      <td className={`py-0.5 border-b border-border/30 ${isConv ? "text-violet-700 dark:text-violet-400" : ""}`}>
+                        <div className="flex items-center gap-1 pl-4 pr-1">
+                          {isAuto && (
+                            <Icon name="Zap" size={10} className="text-muted-foreground/30 shrink-0" title="Считается автоматически" />
                           )}
-                        </td>
-                        {/* Weeks */}
-                        {showWeeks && row.weeks.map((w, wi) => {
-                          const wPct = pct(w.plan, w.fact);
-                          const isActive = wi === activeWeek;
-                          return (
-                            <>
-                              <td key={`${wi}p`} className={`border-b border-border/40 border-l border-l-border/40 ${isActive ? "bg-primary/5" : "opacity-60"}`}>
-                                <NumCell
-                                  value={w.plan}
-                                  onChange={(v) => updateRow(sIdx, rIdx, "weekPlan", wi, v)}
-                                  isConversion={row.isConversion}
-                                />
-                              </td>
-                              <td key={`${wi}f`} className={`border-b border-border/40 ${isActive ? "bg-primary/5" : "opacity-60"}`}>
-                                <NumCell
-                                  value={w.fact}
-                                  onChange={(v) => updateRow(sIdx, rIdx, "weekFact", wi, v)}
-                                  isConversion={row.isConversion}
-                                />
-                              </td>
-                              <td key={`${wi}pct`} className={`border-b border-border/40 text-center px-1 ${isActive ? "bg-primary/5" : "opacity-60"}`}>
-                                {wPct.val !== null ? (
-                                  <span className={`text-xs font-mono ${wPct.color}`}>{wPct.label}</span>
-                                ) : (
-                                  <span className="text-muted-foreground/30 text-xs">—</span>
-                                )}
-                              </td>
-                            </>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </>
-              );
-            })}
+                          <input
+                            value={row.def.label}
+                            onChange={(e) => updateLabel(section.id, rIdx, e.target.value)}
+                            className={`bg-transparent border-0 outline-none flex-1 min-w-0 focus:bg-accent/40 px-1 py-0.5 rounded text-xs ${isConv ? "text-violet-700 dark:text-violet-400" : ""}`}
+                          />
+                          <span className="text-muted-foreground/40 text-[10px] shrink-0">{row.def.unit}</span>
+                          <button
+                            title="Удалить строку"
+                            onClick={() => removeRow(section.id, rIdx)}
+                            className="opacity-0 group-hover/row:opacity-40 hover:!opacity-100 transition-opacity text-red-400 shrink-0 ml-1"
+                          >
+                            <Icon name="X" size={10} />
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* month plan */}
+                      <td className="border-b border-border/30 border-l border-l-border/30 py-0.5 px-0.5">
+                        {isAuto ? <AutoCell value={autoMonth} /> : (
+                          <PlanCell value={row.monthPlan} onChange={(v) => updateMonth(section.id, rIdx, "monthPlan", v)} />
+                        )}
+                      </td>
+                      {/* month fact */}
+                      <td className="border-b border-border/30 py-0.5 px-0.5">
+                        {isAuto ? <AutoCell value={autoMonth} /> : (
+                          <FactCell value={row.monthFact} onChange={(v) => updateMonth(section.id, rIdx, "monthFact", v)} />
+                        )}
+                      </td>
+                      {/* month % */}
+                      <td className="border-b border-border/30 py-0.5 px-1.5 text-center">
+                        {isAuto
+                          ? <span className="text-[9px] text-muted-foreground/30 italic flex items-center justify-center gap-0.5"><Icon name="Zap" size={8} />авто</span>
+                          : <PctCell plan={row.monthPlan} fact={row.monthFact} />
+                        }
+                      </td>
+
+                      {/* weeks */}
+                      {showWeeks && row.weeks.map((w, wi) => {
+                        const wAuto = isAuto ? calcAuto(section.rows, row.def, { wi }) : null;
+                        const isActive = wi === activeWeek;
+                        return (
+                          <>
+                            <td key={`${wi}p`} className={`border-b border-border/30 border-l border-l-border/30 py-0.5 px-0.5 ${isActive ? "" : "opacity-40"}`}>
+                              {isAuto ? <AutoCell value={wAuto} /> : <PlanCell value={w.plan} onChange={(v) => updateWeek(section.id, rIdx, wi, "plan", v)} />}
+                            </td>
+                            <td key={`${wi}f`} className={`border-b border-border/30 py-0.5 px-0.5 ${isActive ? "" : "opacity-40"}`}>
+                              {isAuto ? <AutoCell value={wAuto} /> : <FactCell value={w.fact} onChange={(v) => updateWeek(section.id, rIdx, wi, "fact", v)} />}
+                            </td>
+                            <td key={`${wi}pct`} className={`border-b border-border/30 py-0.5 px-1.5 text-center ${isActive ? "" : "opacity-40"}`}>
+                              {isAuto
+                                ? <span className="text-[9px] text-muted-foreground/30 italic">авто</span>
+                                : <PctCell plan={w.plan} fact={w.fact} />
+                              }
+                            </td>
+                          </>
+                        );
+                      })}
+
+                      <td className="border-b border-border/30" />
+                    </tr>
+                  );
+                })}
+
+                {/* Add row */}
+                {!section.collapsed && (
+                  <tr key={`addrow_${section.id}`} className="bg-muted/5 border-b border-border/20">
+                    <td />
+                    <td colSpan={totalSpan + 1} className="py-1.5 pl-9">
+                      <button
+                        onClick={() => addRow(section.id)}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-primary transition-colors"
+                      >
+                        <Icon name="Plus" size={11} /> добавить строку
+                      </button>
+                    </td>
+                    <td />
+                  </tr>
+                )}
+              </>
+            ))}
           </tbody>
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-muted-foreground">
-        Синим выделены конверсионные метрики. % считается автоматически из план / факт.
-      </p>
+      {/* Add channel button */}
+      <div className="mt-4">
+        {showAddChannel ? (
+          <div className="border border-border rounded-lg p-4 bg-card shadow-sm">
+            <p className="text-sm font-semibold mb-3">Выберите шаблон канала</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {CHANNEL_LIST.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => addChannel(name)}
+                  className="px-3 py-1.5 text-xs rounded-md border border-border hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowAddChannel(false)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Отмена
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAddChannel(true)}
+            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            <Icon name="Plus" size={14} /> Добавить канал
+          </button>
+        )}
+      </div>
     </div>
   );
 }

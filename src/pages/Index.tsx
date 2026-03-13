@@ -4,9 +4,11 @@ import Icon from "@/components/ui/icon";
 import { TabKPI } from "@/components/marketing/TabKPI";
 import { TabReport } from "@/components/marketing/TabCampaigns";
 import { TabPulse } from "@/components/marketing/TabPulse";
+import { TabFunnels } from "@/components/marketing/TabFunnels";
 
 const TABS = [
   { id: "pulse", label: "РНП", icon: "Activity", desc: "Рука на Пульсе" },
+  { id: "funnels", label: "Воронки", icon: "GitBranch", desc: "Оцифровка пути" },
   { id: "kpi", label: "Метрики", icon: "BarChart2", desc: "KPI и показатели" },
   { id: "report", label: "Отчёт", icon: "FileText", desc: "Итоги периода" },
 ] as const;
@@ -87,6 +89,7 @@ export default function Index() {
       {/* Content */}
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
         {activeTab === "pulse" && <TabPulse />}
+        {activeTab === "funnels" && <TabFunnels />}
         {activeTab === "kpi" && <TabKPI />}
         {activeTab === "report" && <TabReport />}
       </main>
