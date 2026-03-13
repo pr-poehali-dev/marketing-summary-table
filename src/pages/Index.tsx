@@ -2,22 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { TabKPI } from "@/components/marketing/TabKPI";
-import { TabBudget } from "@/components/marketing/TabBudget";
-import { TabCampaigns, TabChannels, TabReport } from "@/components/marketing/TabCampaigns";
+import { TabReport } from "@/components/marketing/TabCampaigns";
+import { TabPulse } from "@/components/marketing/TabPulse";
 
 const TABS = [
-  { id: "kpi", label: "KPI", icon: "BarChart2" },
-  { id: "budget", label: "Бюджет", icon: "Wallet" },
-  { id: "campaigns", label: "Кампании", icon: "Megaphone" },
-  { id: "channels", label: "Каналы", icon: "Layers" },
-  { id: "report", label: "Отчёт", icon: "FileText" },
+  { id: "pulse", label: "РНП", icon: "Activity", desc: "Рука на Пульсе" },
+  { id: "kpi", label: "Метрики", icon: "BarChart2", desc: "KPI и показатели" },
+  { id: "report", label: "Отчёт", icon: "FileText", desc: "Итоги периода" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
 
 export default function Index() {
-  const [activeTab, setActiveTab] = useState<TabId>("kpi");
-  const [title, setTitle] = useState("РнП Маркетинг");
+  const [activeTab, setActiveTab] = useState<TabId>("pulse");
+  const [title, setTitle] = useState("РНП Маркетинг");
   const [period, setPeriod] = useState("2025");
   const navigate = useNavigate();
 
@@ -29,7 +27,7 @@ export default function Index() {
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded bg-primary flex items-center justify-center flex-shrink-0">
-                <Icon name="TableProperties" size={14} className="text-white" />
+                <Icon name="Activity" size={14} className="text-white" />
               </div>
               <input
                 className="font-semibold text-sm bg-transparent border-0 outline-none focus:bg-accent rounded px-1 py-0.5 min-w-0 w-48 transition-colors"
@@ -45,9 +43,7 @@ export default function Index() {
               />
             </div>
             <nav className="flex items-center gap-1">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors"
-              >
+              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors">
                 <Icon name="Table2" size={13} />
                 Таблицы
               </button>
@@ -66,12 +62,12 @@ export default function Index() {
       {/* Tabs */}
       <div className="bg-card border-b border-border">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
-          <div className="flex gap-0 overflow-x-auto">
+          <div className="flex gap-0">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
@@ -79,6 +75,9 @@ export default function Index() {
               >
                 <Icon name={tab.icon} size={14} />
                 {tab.label}
+                {activeTab === tab.id && (
+                  <span className="text-xs font-normal text-primary/60 hidden sm:inline">{tab.desc}</span>
+                )}
               </button>
             ))}
           </div>
@@ -87,14 +86,11 @@ export default function Index() {
 
       {/* Content */}
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
+        {activeTab === "pulse" && <TabPulse />}
         {activeTab === "kpi" && <TabKPI />}
-        {activeTab === "budget" && <TabBudget />}
-        {activeTab === "campaigns" && <TabCampaigns />}
-        {activeTab === "channels" && <TabChannels />}
         {activeTab === "report" && <TabReport />}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border mt-8 py-4">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
           <span>{title} · {period}</span>
