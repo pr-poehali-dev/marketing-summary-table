@@ -1,7 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import { api } from "@/api";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface MediaplanItem {
+  id: number;
+  week: string;
+  channel: string;
+  format: string;
+  theme: string;
+  responsible: string;
+  budget: number;
+  reach: number;
+  status: string;
+}
+
+interface ContentMatrixItem {
+  id: number;
+  type: string;
+  formats: string; // comma-separated string from API
+  goal: string;
+  frequency: string;
+  examples: string;
+}
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
 function TopNav({ active }: { active: string }) {
   const navigate = useNavigate();
   const items = [
@@ -28,32 +52,7 @@ function TopNav({ active }: { active: string }) {
   );
 }
 
-// ─── Mock данные ─────────────────────────────────────────────────────────────
-const MEDIAPLAN = [
-  { week: "Нед 1", channel: "Instagram Reels", format: "Видео 60 сек", theme: "Кейс клиента", responsible: "Петрова А.", budget: 25000, status: "Опубликовано", reach: 24300 },
-  { week: "Нед 1", channel: "Telegram", format: "Пост + карусель", theme: "Советы по маркетингу", responsible: "Иванов С.", budget: 0, status: "Опубликовано", reach: 4200 },
-  { week: "Нед 2", channel: "Instagram Reels", format: "Коллаборация", theme: "Блогер + бренд", responsible: "Петрова А.", budget: 42000, status: "В работе", reach: 0 },
-  { week: "Нед 2", channel: "YouTube Shorts", format: "Видео 45 сек", theme: "How-to инструкция", responsible: "Козлов М.", budget: 15000, status: "Планируется", reach: 0 },
-  { week: "Нед 3", channel: "Telegram", format: "Рассылка", theme: "Акция и оффер", responsible: "Иванов С.", budget: 8000, status: "Планируется", reach: 0 },
-  { week: "Нед 3", channel: "Instagram Stories", format: "Stories x5", theme: "За кулисами", responsible: "Петрова А.", budget: 0, status: "Планируется", reach: 0 },
-  { week: "Нед 4", channel: "Instagram Reels", format: "Видео 30 сек", theme: "Результат за месяц", responsible: "Петрова А.", budget: 35000, status: "Планируется", reach: 0 },
-];
-
-const CONTENT_MATRIX = [
-  { type: "Экспертный", formats: ["Лонгрид", "Кейс", "Чеклист"], goal: "Доверие и авторитет", frequency: "2х/нед", examples: "Разбор ошибок в маркетинге" },
-  { type: "Вовлекающий", formats: ["Опрос", "Квиз", "Вопрос-ответ"], goal: "Охват и ER", frequency: "3х/нед", examples: "Как вы считаете CPL?" },
-  { type: "Продающий", formats: ["Кейс + CTA", "Оффер", "Прайс"], goal: "Лиды и продажи", frequency: "1х/нед", examples: "Что получил клиент за 30 дней" },
-  { type: "Развлекательный", formats: ["Reels", "Мемы", "Behind scenes"], goal: "Узнаваемость", frequency: "2х/нед", examples: "День из жизни команды" },
-  { type: "UGC / Отзывы", formats: ["Скрины", "Видео-отзыв", "Репост"], goal: "Социальное доказательство", frequency: "По наличию", examples: "Отзыв клиента ООО Альфа" },
-];
-
-const CONTENT_TABS = [
-  { id: "mediaplan", label: "Медиаплан", icon: "CalendarDays" },
-  { id: "matrix", label: "Матрица контента", icon: "Grid3X3" },
-  { id: "shoots", label: "Съёмки и производство", icon: "Clapperboard" },
-] as const;
-type CTabId = typeof CONTENT_TABS[number]["id"];
-
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     "Опубликовано": "bg-green-100 text-green-700",
@@ -61,7 +60,11 @@ function StatusBadge({ status }: { status: string }) {
     "Планируется": "bg-yellow-100 text-yellow-700",
     "Отменено": "bg-red-100 text-red-600",
   };
-  return <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${map[status] ?? "bg-muted text-muted-foreground"}`}>{status}</span>;
+  return (
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium ${map[status] ?? "bg-muted text-muted-foreground"}`}>
+      {status}
+    </span>
+  );
 }
 
 function PlaceholderSection({ icon, title, desc }: { icon: string; title: string; desc: string }) {
@@ -81,8 +84,91 @@ function PlaceholderSection({ icon, title, desc }: { icon: string; title: string
   );
 }
 
+function LoadingText() {
+  return <div className="text-xs text-muted-foreground py-10 text-center">Загрузка...</div>;
+}
+
+// ─── Tabs config ──────────────────────────────────────────────────────────────
+const CONTENT_TABS = [
+  { id: "mediaplan", label: "Медиаплан", icon: "CalendarDays" },
+  { id: "matrix", label: "Матрица контента", icon: "Grid3X3" },
+  { id: "shoots", label: "Съёмки и производство", icon: "Clapperboard" },
+] as const;
+type CTabId = typeof CONTENT_TABS[number]["id"];
+
+// ─── Card color palettes ──────────────────────────────────────────────────────
+const MATRIX_COLORS = [
+  { border: "border-blue-200 bg-blue-50", head: "bg-blue-100 text-blue-800" },
+  { border: "border-purple-200 bg-purple-50", head: "bg-purple-100 text-purple-800" },
+  { border: "border-green-200 bg-green-50", head: "bg-green-100 text-green-800" },
+  { border: "border-orange-200 bg-orange-50", head: "bg-orange-100 text-orange-800" },
+  { border: "border-yellow-200 bg-yellow-50", head: "bg-yellow-100 text-yellow-800" },
+];
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function Content() {
   const [activeTab, setActiveTab] = useState<CTabId>("mediaplan");
+
+  // ── Mediaplan state ───────────────────────────────────────────────────────
+  const [mediaplan, setMediaplan] = useState<MediaplanItem[]>([]);
+  const [mediaplanLoading, setMediaplanLoading] = useState(false);
+
+  // ── Content matrix state ──────────────────────────────────────────────────
+  const [contentMatrix, setContentMatrix] = useState<ContentMatrixItem[]>([]);
+  const [matrixLoading, setMatrixLoading] = useState(false);
+
+  // ── Lazy load by tab ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (activeTab === "mediaplan" && mediaplan.length === 0 && !mediaplanLoading) {
+      setMediaplanLoading(true);
+      api.get("mediaplan")
+        .then((data) => setMediaplan(Array.isArray(data) ? data : []))
+        .catch(() => setMediaplan([]))
+        .finally(() => setMediaplanLoading(false));
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "matrix" && contentMatrix.length === 0 && !matrixLoading) {
+      setMatrixLoading(true);
+      api.get("content-matrix")
+        .then((data) => setContentMatrix(Array.isArray(data) ? data : []))
+        .catch(() => setContentMatrix([]))
+        .finally(() => setMatrixLoading(false));
+    }
+  }, [activeTab]);
+
+  // ── Mediaplan actions ─────────────────────────────────────────────────────
+  const handleAddMediaplan = async () => {
+    const week = prompt("Неделя (например, Нед 1):");
+    if (!week?.trim()) return;
+    const channel = prompt("Канал (например, Instagram Reels):") ?? "";
+    const theme = prompt("Тема публикации:") ?? "";
+    const responsible = prompt("Ответственный:") ?? "";
+    const created = await api.post("mediaplan", {
+      week: week.trim(),
+      channel: channel.trim(),
+      theme: theme.trim(),
+      responsible: responsible.trim(),
+      format: "",
+      budget: 0,
+      reach: 0,
+      status: "Планируется",
+    });
+    if (created && created.id) {
+      setMediaplan((prev) => [...prev, created]);
+    }
+  };
+
+  const handleDeleteMediaplan = async (id: number) => {
+    await api.delete("mediaplan", id);
+    setMediaplan((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  // ── Derived summary ───────────────────────────────────────────────────────
+  const totalBudget = mediaplan.reduce((s, m) => s + (m.budget || 0), 0);
+  const totalReach = mediaplan.reduce((s, m) => s + (m.reach || 0), 0);
+  const publishedCount = mediaplan.filter((m) => m.status === "Опубликовано").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,54 +216,76 @@ export default function Content() {
                 <p className="text-xs text-muted-foreground mt-0.5">Расписание публикаций по каналам и форматам</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                <button
+                  onClick={handleAddMediaplan}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                >
                   <Icon name="Plus" size={13} /> Добавить
                 </button>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { label: "Всего материалов", value: String(MEDIAPLAN.length) },
-                { label: "Опубликовано", value: String(MEDIAPLAN.filter(m => m.status === "Опубликовано").length) },
-                { label: "Бюджет на контент", value: `${MEDIAPLAN.reduce((s, m) => s + m.budget, 0).toLocaleString("ru-RU")} ₽` },
-                { label: "Охват (факт)", value: MEDIAPLAN.reduce((s, m) => s + m.reach, 0).toLocaleString("ru-RU") },
-              ].map((kpi) => (
-                <div key={kpi.label} className="bg-card border border-border rounded-xl p-3">
-                  <div className="text-xs text-muted-foreground mb-1">{kpi.label}</div>
-                  <div className="font-mono text-lg font-bold text-foreground">{kpi.value}</div>
+            {mediaplanLoading ? (
+              <LoadingText />
+            ) : (
+              <>
+                {/* Summary */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Всего материалов", value: String(mediaplan.length) },
+                    { label: "Опубликовано", value: String(publishedCount) },
+                    { label: "Бюджет на контент", value: `${totalBudget.toLocaleString("ru-RU")} ₽` },
+                    { label: "Охват (факт)", value: totalReach.toLocaleString("ru-RU") },
+                  ].map((kpi) => (
+                    <div key={kpi.label} className="bg-card border border-border rounded-xl p-3">
+                      <div className="text-xs text-muted-foreground mb-1">{kpi.label}</div>
+                      <div className="font-mono text-lg font-bold text-foreground">{kpi.value}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs min-w-[900px]">
-                  <thead className="bg-muted/40">
-                    <tr className="border-b border-border">
-                      {["Неделя", "Канал", "Формат", "Тема", "Ответственный", "Бюджет", "Охват", "Статус"].map((h) => (
-                        <th key={h} className="text-left px-3 py-3 font-medium text-muted-foreground">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MEDIAPLAN.map((m, i) => (
-                      <tr key={i} className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors">
-                        <td className="px-3 py-3 font-medium text-foreground">{m.week}</td>
-                        <td className="px-3 py-3 text-foreground">{m.channel}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{m.format}</td>
-                        <td className="px-3 py-3 text-foreground">{m.theme}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{m.responsible}</td>
-                        <td className="px-3 py-3 font-mono text-foreground">{m.budget > 0 ? `${m.budget.toLocaleString("ru-RU")} ₽` : "—"}</td>
-                        <td className="px-3 py-3 font-mono text-foreground">{m.reach > 0 ? m.reach.toLocaleString("ru-RU") : "—"}</td>
-                        <td className="px-3 py-3"><StatusBadge status={m.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                <div className="bg-card border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs min-w-[900px]">
+                      <thead className="bg-muted/40">
+                        <tr className="border-b border-border">
+                          {["Неделя", "Канал", "Формат", "Тема", "Ответственный", "Бюджет", "Охват", "Статус", ""].map((h) => (
+                            <th key={h} className="text-left px-3 py-3 font-medium text-muted-foreground">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mediaplan.map((m) => (
+                          <tr key={m.id} className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors group">
+                            <td className="px-3 py-3 font-medium text-foreground">{m.week}</td>
+                            <td className="px-3 py-3 text-foreground">{m.channel}</td>
+                            <td className="px-3 py-3 text-muted-foreground">{m.format}</td>
+                            <td className="px-3 py-3 text-foreground">{m.theme}</td>
+                            <td className="px-3 py-3 text-muted-foreground">{m.responsible}</td>
+                            <td className="px-3 py-3 font-mono text-foreground">
+                              {(m.budget || 0) > 0 ? `${(m.budget).toLocaleString("ru-RU")} ₽` : "—"}
+                            </td>
+                            <td className="px-3 py-3 font-mono text-foreground">
+                              {(m.reach || 0) > 0 ? (m.reach).toLocaleString("ru-RU") : "—"}
+                            </td>
+                            <td className="px-3 py-3"><StatusBadge status={m.status} /></td>
+                            <td className="px-3 py-3">
+                              <button
+                                onClick={() => handleDeleteMediaplan(m.id)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-all"
+                                title="Удалить"
+                              >
+                                <Icon name="Trash2" size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -193,55 +301,54 @@ export default function Content() {
                 <Icon name="Plus" size={13} /> Добавить тип
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {CONTENT_MATRIX.map((c, i) => {
-                const colors = [
-                  "border-blue-200 bg-blue-50",
-                  "border-purple-200 bg-purple-50",
-                  "border-green-200 bg-green-50",
-                  "border-orange-200 bg-orange-50",
-                  "border-yellow-200 bg-yellow-50",
-                ];
-                const headColors = [
-                  "bg-blue-100 text-blue-800",
-                  "bg-purple-100 text-purple-800",
-                  "bg-green-100 text-green-800",
-                  "bg-orange-100 text-orange-800",
-                  "bg-yellow-100 text-yellow-800",
-                ];
-                return (
-                  <div key={i} className={`border rounded-xl overflow-hidden ${colors[i]}`}>
-                    <div className={`px-4 py-2.5 flex items-center justify-between ${headColors[i]}`}>
-                      <span className="font-semibold text-sm">{c.type}</span>
-                      <span className="text-xs opacity-70">{c.frequency}</span>
-                    </div>
-                    <div className="p-4 flex flex-col gap-3">
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Форматы</div>
-                        <div className="flex flex-wrap gap-1">
-                          {c.formats.map((f) => (
-                            <span key={f} className="px-2 py-0.5 bg-white/70 border border-current/20 rounded text-xs text-foreground">{f}</span>
-                          ))}
+
+            {matrixLoading ? (
+              <LoadingText />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {contentMatrix.map((c, i) => {
+                  const palette = MATRIX_COLORS[i % MATRIX_COLORS.length];
+                  const formatTags = c.formats
+                    ? c.formats.split(",").map((f) => f.trim()).filter(Boolean)
+                    : [];
+                  return (
+                    <div key={c.id} className={`border rounded-xl overflow-hidden ${palette.border}`}>
+                      <div className={`px-4 py-2.5 flex items-center justify-between ${palette.head}`}>
+                        <span className="font-semibold text-sm">{c.type}</span>
+                        <span className="text-xs opacity-70">{c.frequency}</span>
+                      </div>
+                      <div className="p-4 flex flex-col gap-3">
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1">Форматы</div>
+                          <div className="flex flex-wrap gap-1">
+                            {formatTags.map((f) => (
+                              <span key={f} className="px-2 py-0.5 bg-white/70 border border-current/20 rounded text-xs text-foreground">{f}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-0.5">Цель</div>
+                          <div className="text-sm font-medium text-foreground">{c.goal}</div>
+                        </div>
+                        <div className="border-t border-current/10 pt-2">
+                          <div className="text-xs text-muted-foreground mb-0.5">Пример</div>
+                          <div className="text-xs text-foreground italic">{c.examples}</div>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-0.5">Цель</div>
-                        <div className="text-sm font-medium text-foreground">{c.goal}</div>
-                      </div>
-                      <div className="border-t border-current/10 pt-2">
-                        <div className="text-xs text-muted-foreground mb-0.5">Пример</div>
-                        <div className="text-xs text-foreground italic">{c.examples}</div>
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === "shoots" && (
-          <PlaceholderSection icon="Clapperboard" title="Съёмки и производство" desc="Бюджеты и планирование производства видеоконтента, фотосессий и материалов" />
+          <PlaceholderSection
+            icon="Clapperboard"
+            title="Съёмки и производство"
+            desc="Бюджеты и планирование производства видеоконтента, фотосессий и материалов"
+          />
         )}
       </main>
 
