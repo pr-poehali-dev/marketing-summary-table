@@ -43,19 +43,18 @@ export default function Index() {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-12">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center flex-shrink-0">
-                <Icon name="Activity" size={14} className="text-white" />
+          <div className="flex items-center gap-2 h-12">
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="w-7 h-7 rounded bg-[#b5f23d] flex items-center justify-center flex-shrink-0">
+                <Icon name="Activity" size={14} className="text-black" />
               </div>
               <input
-                className="font-semibold text-sm bg-transparent border-0 outline-none focus:bg-accent rounded px-1 py-0.5 min-w-0 w-48 transition-colors"
+                className="font-semibold text-sm bg-transparent border-0 outline-none focus:bg-muted rounded px-1 py-0.5 min-w-0 w-36 transition-colors text-foreground"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
-
             </div>
-            <nav className="flex items-center gap-1 overflow-x-auto">
+            <nav className="flex items-center gap-0.5 overflow-x-auto flex-1">
               <button
                 onClick={() => navigate("/dashboard")}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
@@ -95,8 +94,16 @@ export default function Index() {
                 <Icon name="Film" size={13} />
                 Контент
               </button>
-              {/* Settings gear */}
-              <div className="relative" ref={settingsRef}>
+              <button
+                onClick={() => navigate("/data")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                <Icon name="Database" size={13} />
+                Данные
+              </button>
+            </nav>
+            {/* Settings gear — вне nav чтобы дропдаун не обрезался */}
+            <div className="relative flex-shrink-0" ref={settingsRef}>
                 <button
                   onClick={() => setSettingsOpen((v) => !v)}
                   title="Настройки"
@@ -143,7 +150,6 @@ export default function Index() {
                   </div>
                 )}
               </div>
-            </nav>
           </div>
         </div>
       </header>
