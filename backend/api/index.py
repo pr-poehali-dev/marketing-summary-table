@@ -315,6 +315,27 @@ def handler(event: dict, context) -> dict:
                 conn.commit()
                 return ok(one_row(cur))
 
+        # ── DATA IMPORTS ─────────────────────────────────────────────────────
+        if resource == 'data-imports':
+            if method == 'GET':
+                cur.execute("SELECT * FROM data_imports ORDER BY created_at DESC")
+                return ok(rows_to_list(cur))
+            if method == 'POST':
+                cur.execute(
+                    "INSERT INTO data_imports (name, source, status, row_count, columns, preview, raw_data) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+                    (body.get('name'), body.get('source','csv'), body.get('status','ready'),
+                     body.get('row_count',0),
+                     json.dumps(body.get('columns',[])),
+                     json.dumps(body.get('preview',[])),
+                     json.dumps(body.get('raw_data',[])))
+                )
+                conn.commit()
+                return ok(one_row(cur))
+            if method == 'DELETE':
+                cur.execute("DELETE FROM data_imports WHERE id=%s", (rid,))
+                conn.commit()
+                return ok({'deleted': True})
+
         return err('resource not found', 404)
 
     except Exception as e:

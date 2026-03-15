@@ -219,6 +219,7 @@ function TopNav({ active }: { active: string }) {
     { path: "/economics",  label: "Экономика",     icon: "Calculator" },
     { path: "/research",   label: "Исследование",  icon: "Search" },
     { path: "/content",    label: "Контент",       icon: "Film" },
+    { path: "/data",       label: "Данные",         icon: "Database" },
   ] as const;
   return (
     <nav className="flex items-center gap-0.5 overflow-x-auto">

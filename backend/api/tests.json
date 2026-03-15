@@ -55,6 +55,13 @@
       "path": "/?resource=products",
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET data-imports",
+      "method": "GET",
+      "path": "/?resource=data-imports",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
     }
   ]
 }
