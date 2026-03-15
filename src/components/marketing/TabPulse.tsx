@@ -212,7 +212,7 @@ function PlanCell({ value, onChange }: { value: string; onChange: (v: string) =>
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="план"
-      className="w-full bg-blue-50/70 dark:bg-blue-950/20 border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-blue-100 dark:focus:bg-blue-900/30 rounded transition-colors placeholder:text-blue-300/50 text-blue-900 dark:text-blue-200"
+      className="w-full bg-blue-500/8 border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-blue-500/15 rounded transition-colors placeholder:text-blue-400/25 text-blue-300"
     />
   );
 }
@@ -223,7 +223,7 @@ function FactCell({ value, onChange }: { value: string; onChange: (v: string) =>
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="факт"
-      className="w-full bg-white dark:bg-background border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-accent/60 rounded transition-colors placeholder:text-muted-foreground/25"
+      className="w-full bg-transparent border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-[#b5f23d]/5 rounded transition-colors placeholder:text-muted-foreground/25 text-foreground"
     />
   );
 }
@@ -379,8 +379,8 @@ export function TabPulse() {
           <Icon name="Zap" size={10} className="text-muted-foreground/50" />
           Автоматически
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400">
-          <span className="w-2 h-2 rounded-full bg-violet-400" />
+        <div className="flex items-center gap-1.5 text-xs text-[#b5f23d]">
+          <span className="w-2 h-2 rounded-full bg-[#b5f23d]" />
           Конверсия (CV)
         </div>
       </div>
@@ -392,15 +392,15 @@ export function TabPulse() {
           style={{ minWidth: showWeeks ? 1080 : 580 }}
         >
           <thead>
-            <tr className="bg-[#1a3557] text-white">
+            <tr className="bg-muted/60 text-foreground border-b border-border">
               <th className="w-7 py-2" rowSpan={2} />
-              <th className="text-left px-3 py-2 font-semibold min-w-52" rowSpan={2}>
+              <th className="text-left px-3 py-2 font-semibold min-w-52 text-muted-foreground text-xs uppercase tracking-wider" rowSpan={2}>
                 Метрика
               </th>
               {/* Month group */}
               <th
                 colSpan={3}
-                className="text-center px-2 py-1.5 font-semibold border-l border-white/10 text-sm"
+                className="text-center px-2 py-1.5 font-semibold border-l border-border text-sm text-[#b5f23d]"
               >
                 {month}
               </th>
@@ -409,24 +409,24 @@ export function TabPulse() {
                 <th
                   key={i}
                   colSpan={3}
-                  className={`text-center px-2 py-1.5 font-medium border-l border-white/10 ${i === activeWeek ? "bg-white/10" : "opacity-50"}`}
+                  className={`text-center px-2 py-1.5 font-medium border-l border-border text-xs ${i === activeWeek ? "text-foreground" : "text-muted-foreground/40"}`}
                 >
                   {l}
                 </th>
               ))}
               <th className="w-7 py-2" rowSpan={2} />
             </tr>
-            <tr className="bg-[#1a3557] text-white/80 text-[11px]">
-              <th className="w-24 px-1.5 py-1 text-center border-l border-white/10 border-t border-white/10 text-blue-200">
+            <tr className="bg-muted/40 text-muted-foreground text-[11px] border-b border-border">
+              <th className="w-24 px-1.5 py-1 text-center border-l border-border border-t border-border/50 text-blue-400/80">
                 План
               </th>
-              <th className="w-24 px-1.5 py-1 text-center border-t border-white/10">Факт</th>
-              <th className="w-12 px-1 py-1 text-center border-t border-white/10 text-white/50">%</th>
+              <th className="w-24 px-1.5 py-1 text-center border-t border-border/50">Факт</th>
+              <th className="w-12 px-1 py-1 text-center border-t border-border/50 text-muted-foreground/50">%</th>
               {showWeeks && WEEK_LABELS.map((_, i) => (
                 <>
-                  <th key={`${i}p`} className={`w-20 px-1.5 py-1 text-center border-l border-white/10 border-t border-white/10 text-blue-200 ${i === activeWeek ? "" : "opacity-50"}`}>П</th>
-                  <th key={`${i}f`} className={`w-20 px-1.5 py-1 text-center border-t border-white/10 ${i === activeWeek ? "" : "opacity-50"}`}>Ф</th>
-                  <th key={`${i}pct`} className={`w-10 px-1 py-1 text-center border-t border-white/10 text-white/50 ${i === activeWeek ? "" : "opacity-50"}`}>%</th>
+                  <th key={`${i}p`} className={`w-20 px-1.5 py-1 text-center border-l border-border border-t border-border/50 text-blue-400/80 ${i === activeWeek ? "" : "opacity-40"}`}>П</th>
+                  <th key={`${i}f`} className={`w-20 px-1.5 py-1 text-center border-t border-border/50 ${i === activeWeek ? "" : "opacity-40"}`}>Ф</th>
+                  <th key={`${i}pct`} className={`w-10 px-1 py-1 text-center border-t border-border/50 text-muted-foreground/50 ${i === activeWeek ? "" : "opacity-40"}`}>%</th>
                 </>
               ))}
             </tr>
@@ -436,7 +436,7 @@ export function TabPulse() {
             {sections.map((section) => (
               <>
                 {/* Section header */}
-                <tr key={`h_${section.id}`} className="bg-[#2c3e50] text-white group/sec">
+                <tr key={`h_${section.id}`} className="bg-muted/30 border-y border-border text-foreground group/sec">
                   <td
                     className="px-2 py-1.5 text-center cursor-pointer"
                     onClick={() => toggleCollapse(section.id)}
@@ -505,15 +505,15 @@ export function TabPulse() {
                       </td>
 
                       {/* label */}
-                      <td className={`py-0.5 border-b border-border/30 ${isConv ? "text-violet-700 dark:text-violet-400" : ""}`}>
+                      <td className={`py-0.5 border-b border-border/30 ${isConv ? "text-[#b5f23d]" : ""}`}>
                         <div className="flex items-center gap-1 pl-4 pr-1">
                           {isAuto && (
-                            <Icon name="Zap" size={10} className="text-muted-foreground/30 shrink-0" title="Считается автоматически" />
+                            <Icon name="Zap" size={10} className="text-[#b5f23d]/40 shrink-0" title="Считается автоматически" />
                           )}
                           <input
                             value={row.def.label}
                             onChange={(e) => updateLabel(section.id, rIdx, e.target.value)}
-                            className={`bg-transparent border-0 outline-none flex-1 min-w-0 focus:bg-accent/40 px-1 py-0.5 rounded text-xs ${isConv ? "text-violet-700 dark:text-violet-400" : ""}`}
+                            className={`bg-transparent border-0 outline-none flex-1 min-w-0 focus:bg-[#b5f23d]/5 px-1 py-0.5 rounded text-xs ${isConv ? "text-[#b5f23d]" : ""}`}
                           />
                           <span className="text-muted-foreground/40 text-[10px] shrink-0">{row.def.unit}</span>
                           <button
