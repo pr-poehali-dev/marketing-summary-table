@@ -185,7 +185,7 @@ export default function Index() {
 
       <footer className="border-t border-border mt-8 py-4">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{title} · {period}</span>
+          <span>{title}</span>
           <span>Данные не сохраняются автоматически</span>
         </div>
       </footer>
