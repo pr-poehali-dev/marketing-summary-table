@@ -4,48 +4,53 @@
 
 @layer base {
   :root {
-    --background: 0 0% 97%;
-    --foreground: 220 15% 12%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 12%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 12%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 217 91% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 77 80% 56%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 217 20% 94%;
-    --secondary-foreground: 217 30% 25%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 80%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 217 91% 96%;
-    --accent-foreground: 217 91% 30%;
+    --accent: 77 80% 56%;
+    --accent-foreground: 0 0% 5%;
 
-    --destructive: 0 84% 55%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 217 91% 40%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 77 80% 56%;
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    --success: 142 71% 38%;
+    --success: 77 80% 56%;
     --warning: 38 92% 50%;
-    --danger: 0 84% 55%;
+    --danger: 0 72% 51%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 77 80% 56%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 77 80% 56%;
+
+    /* Lime accent raw values for glow effects */
+    --lime: #b5f23d;
+    --lime-dim: rgba(181, 242, 61, 0.08);
+    --lime-glow: rgba(181, 242, 61, 0.15);
   }
 }
 
@@ -58,6 +63,22 @@
     @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
   }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b5f23d40;
+  }
 }
 
 @layer utilities {
@@ -68,10 +89,12 @@
   .table-cell-input {
     @apply w-full bg-transparent border-0 outline-none text-sm px-2 py-1;
     font-family: "IBM Plex Mono", monospace;
+    color: #e5e5e5;
   }
 
   .table-cell-input:focus {
-    @apply bg-accent rounded;
+    background: rgba(181, 242, 61, 0.06);
+    border-radius: 4px;
   }
 
   .status-badge {
@@ -79,11 +102,50 @@
   }
 
   .tab-active {
-    @apply border-b-2 border-primary text-primary font-semibold;
+    border-bottom: 2px solid var(--lime);
+    color: var(--lime);
+    font-weight: 600;
   }
 
   .tab-inactive {
     @apply text-muted-foreground hover:text-foreground;
+    transition: color 0.15s;
+  }
+
+  /* Card with lime left border accent */
+  .card-accent {
+    border-left: 2px solid var(--lime);
+  }
+
+  /* Lime glow button */
+  .btn-lime {
+    background: var(--lime);
+    color: #0a0a0a;
+    font-weight: 600;
+    transition:
+      box-shadow 0.2s,
+      opacity 0.2s;
+  }
+  .btn-lime:hover {
+    box-shadow: 0 0 16px var(--lime-glow);
+    opacity: 0.92;
+  }
+
+  /* Metric number highlight */
+  .metric-lime {
+    color: var(--lime);
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  /* Subtle card glow on hover */
+  .card-hover {
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .card-hover:hover {
+    border-color: rgba(181, 242, 61, 0.25);
+    box-shadow: 0 0 0 1px rgba(181, 242, 61, 0.08);
   }
 
   .animate-fade-in {
@@ -93,7 +155,7 @@
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(4px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
