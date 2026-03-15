@@ -6,6 +6,8 @@ import {
 } from "recharts";
 import Icon from "@/components/ui/icon";
 import { api } from "@/api";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useTheme } from "@/hooks/useTheme";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface WeeklyStat {
@@ -250,6 +252,13 @@ const METRIC_ICONS: Record<string, string> = {
 
 // ─── Dashboard page ───────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const { dark } = useTheme();
+
+  // ── Adaptive chart colours ─────────────────────────────────────────────────
+  const CHART_PRIMARY   = dark ? "#b5f23d" : "#2563eb";
+  const CHART_SECONDARY = dark ? "#3b3b3b" : "#e2e8f0";
+  const CHART_DANGER    = dark ? "#ef4444" : "#dc2626";
+
   const [period, setPeriod] = useState(0);
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -333,7 +342,10 @@ export default function Dashboard() {
               <span className="text-muted-foreground text-xs hidden sm:block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:block">2025</span>
             </div>
-            <TopNav active="/dashboard" />
+            <div className="flex items-center gap-1">
+              <TopNav active="/dashboard" />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -348,7 +360,9 @@ export default function Dashboard() {
                 onClick={() => setPeriod(i)}
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   period === i
-                    ? "bg-[#b5f23d]/15 text-[#b5f23d] border border-[#b5f23d]/25"
+                    ? dark
+                      ? "bg-[#b5f23d]/15 text-[#b5f23d] border border-[#b5f23d]/25"
+                      : "bg-blue-100 text-blue-700 border border-blue-300 font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
@@ -415,12 +429,12 @@ export default function Dashboard() {
                   >
                     <defs>
                       <linearGradient id="gradBudget" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%"   stopColor="#b5f23d" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#b5f23d" stopOpacity={0.4} />
+                        <stop offset="0%"   stopColor={CHART_PRIMARY} stopOpacity={0.9} />
+                        <stop offset="100%" stopColor={CHART_PRIMARY} stopOpacity={0.4} />
                       </linearGradient>
                       <linearGradient id="gradLeads" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%"   stopColor="#3b3b3b" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#3b3b3b" stopOpacity={0.6} />
+                        <stop offset="0%"   stopColor={CHART_SECONDARY} stopOpacity={1} />
+                        <stop offset="100%" stopColor={CHART_SECONDARY} stopOpacity={0.6} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -480,7 +494,7 @@ export default function Dashboard() {
                   <div key={c.name} className="flex items-center gap-2">
                     <span
                       className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: "#b5f23d" }}
+                      style={{ backgroundColor: CHART_PRIMARY }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
@@ -496,7 +510,9 @@ export default function Dashboard() {
                           className="h-full rounded-full transition-all"
                           style={{
                             width: `${c.value}%`,
-                            background: `linear-gradient(90deg, #b5f23d 0%, #8bc22a 100%)`,
+                            background: dark
+                              ? `linear-gradient(90deg, #b5f23d 0%, #8bc22a 100%)`
+                              : `linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%)`,
                           }}
                         />
                       </div>
@@ -572,12 +588,12 @@ export default function Dashboard() {
                   >
                     <defs>
                       <linearGradient id="gradCPL" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.18} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        <stop offset="5%"  stopColor={CHART_DANGER} stopOpacity={0.18} />
+                        <stop offset="95%" stopColor={CHART_DANGER} stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="gradLTV" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#b5f23d" stopOpacity={0.18} />
-                        <stop offset="95%" stopColor="#b5f23d" stopOpacity={0} />
+                        <stop offset="5%"  stopColor={CHART_PRIMARY} stopOpacity={0.18} />
+                        <stop offset="95%" stopColor={CHART_PRIMARY} stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -602,7 +618,7 @@ export default function Dashboard() {
                       type="monotone"
                       dataKey="cpl"
                       name="CPL ₽"
-                      stroke="#ef4444"
+                      stroke={CHART_DANGER}
                       strokeWidth={1.5}
                       fill="url(#gradCPL)"
                       dot={false}
@@ -611,7 +627,7 @@ export default function Dashboard() {
                       type="monotone"
                       dataKey="ltv"
                       name="LTV ₽"
-                      stroke="#b5f23d"
+                      stroke={CHART_PRIMARY}
                       strokeWidth={1.5}
                       fill="url(#gradLTV)"
                       dot={false}
@@ -631,7 +647,7 @@ export default function Dashboard() {
                 {kpiData.map((k) => {
                   const pct   = k.plan > 0 ? Math.round((k.fact / k.plan) * 100) : 0;
                   const color =
-                    pct >= 100 ? "#b5f23d" : pct >= 70 ? "#f59e0b" : "#ef4444";
+                    pct >= 100 ? CHART_PRIMARY : pct >= 70 ? "#f59e0b" : CHART_DANGER;
                   return (
                     <div key={k.name} className="flex flex-col gap-1">
                       <div className="flex items-center justify-between text-xs">
@@ -697,8 +713,8 @@ export default function Dashboard() {
                     >
                       <defs>
                         <linearGradient id="gradROMI" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#b5f23d" stopOpacity={0.22} />
-                          <stop offset="95%" stopColor="#b5f23d" stopOpacity={0} />
+                          <stop offset="5%"  stopColor={CHART_PRIMARY} stopOpacity={0.22} />
+                          <stop offset="95%" stopColor={CHART_PRIMARY} stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
@@ -723,10 +739,10 @@ export default function Dashboard() {
                         type="monotone"
                         dataKey="romi"
                         name="ROMI %"
-                        stroke="#b5f23d"
+                        stroke={CHART_PRIMARY}
                         strokeWidth={2}
                         fill="url(#gradROMI)"
-                        dot={{ fill: "#b5f23d", r: 3, strokeWidth: 0 }}
+                        dot={{ fill: CHART_PRIMARY, r: 3, strokeWidth: 0 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>

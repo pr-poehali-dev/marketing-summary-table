@@ -1,18 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-
-function useTheme() {
-  const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem("theme");
-    return saved ? saved === "dark" : true;
-  });
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
-  }, [dark]);
-  return { dark, toggle: () => setDark((v) => !v) };
-}
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { TabKPI } from "@/components/marketing/TabKPI";
 import { TabReport } from "@/components/marketing/TabCampaigns";
 import { TabPulse } from "@/components/marketing/TabPulse";
@@ -36,7 +25,6 @@ export default function Index() {
   const [title, setTitle] = useState("РНП Маркетинг");
   const [period, setPeriod] = useState("2025");
   const navigate = useNavigate();
-  const { dark, toggle } = useTheme();
 
   return (
     <div className="min-h-screen bg-background">
@@ -101,13 +89,7 @@ export default function Index() {
                 <Icon name="Film" size={13} />
                 Контент
               </button>
-              <button
-                onClick={toggle}
-                title={dark ? "Светлая тема" : "Тёмная тема"}
-                className="ml-1 flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <Icon name={dark ? "Sun" : "Moon"} size={14} />
-              </button>
+              <ThemeToggle />
             </nav>
           </div>
         </div>

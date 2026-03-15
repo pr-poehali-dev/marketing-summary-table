@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { api } from "@/api";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MediaplanItem {
@@ -202,7 +203,7 @@ export default function Content() {
               <span className="text-muted-foreground text-xs hidden sm:block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:block">Контент</span>
             </div>
-            <TopNav active="/content" />
+            <div className="flex items-center gap-1"><TopNav active="/content" /><ThemeToggle /></div>
           </div>
         </div>
       </header>

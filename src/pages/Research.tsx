@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { api } from "@/api";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface SwotItem {
@@ -307,7 +308,7 @@ export default function Research() {
               <span className="text-muted-foreground text-xs hidden sm:block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:block">Исследование</span>
             </div>
-            <TopNav active="/research" />
+            <div className="flex items-center gap-1"><TopNav active="/research" /><ThemeToggle /></div>
           </div>
         </div>
       </header>

@@ -5,52 +5,54 @@
 @layer base {
   /* ── LIGHT THEME ── */
   :root {
-    --background: 0 0% 97%;
-    --foreground: 220 15% 12%;
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 12%;
+    --card-foreground: 220 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 12%;
+    --popover-foreground: 220 25% 10%;
 
-    --primary: 77 80% 40%;
+    /* primary — тёмно-синий, читаемый на белом */
+    --primary: 222 65% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 220 15% 30%;
+    --secondary: 220 15% 93%;
+    --secondary-foreground: 220 20% 25%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 15% 93%;
+    --muted-foreground: 220 12% 45%;
 
-    --accent: 77 80% 94%;
-    --accent-foreground: 77 80% 20%;
+    --accent: 222 65% 93%;
+    --accent-foreground: 222 65% 25%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 77 80% 40%;
+    --border: 220 15% 87%;
+    --input: 220 15% 87%;
+    --ring: 222 65% 40%;
 
     --radius: 0.5rem;
 
-    --success: 77 80% 38%;
-    --warning: 38 92% 50%;
-    --danger: 0 72% 51%;
+    --success: 142 60% 30%;
+    --warning: 38 85% 42%;
+    --danger: 0 72% 50%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 220 10% 30%;
-    --sidebar-primary: 77 80% 40%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 220 20% 25%;
+    --sidebar-primary: 222 65% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 94%;
-    --sidebar-accent-foreground: 220 15% 12%;
-    --sidebar-border: 220 13% 88%;
-    --sidebar-ring: 77 80% 40%;
+    --sidebar-accent: 220 15% 93%;
+    --sidebar-accent-foreground: 220 25% 10%;
+    --sidebar-border: 220 15% 87%;
+    --sidebar-ring: 222 65% 40%;
 
-    --lime: #6b9a00;
-    --lime-dim: rgba(107, 154, 0, 0.08);
-    --lime-glow: rgba(107, 154, 0, 0.15);
+    /* Лайм в светлой теме — только декоративный, насыщенный */
+    --lime: #4a7c00;
+    --lime-dim: rgba(74, 124, 0, 0.06);
+    --lime-glow: rgba(74, 124, 0, 0.12);
   }
 
   /* ── DARK THEME ── */
@@ -115,20 +117,31 @@
     font-family: "Golos Text", sans-serif;
   }
 
-  /* Scrollbar */
+  /* Scrollbar dark */
+  .dark ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: #222;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #b5f23d40;
+  }
+
+  /* Scrollbar light */
   ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
   ::-webkit-scrollbar-track {
-    background: #0a0a0a;
+    background: #f0f0f0;
   }
   ::-webkit-scrollbar-thumb {
-    background: #222;
+    background: #ccc;
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #b5f23d40;
+    background: #999;
   }
 }
 
@@ -138,14 +151,16 @@
   }
 
   .table-cell-input {
-    @apply w-full bg-transparent border-0 outline-none text-sm px-2 py-1;
+    @apply w-full bg-transparent border-0 outline-none text-sm px-2 py-1 text-foreground;
     font-family: "IBM Plex Mono", monospace;
-    color: #e5e5e5;
   }
 
   .table-cell-input:focus {
-    background: rgba(181, 242, 61, 0.06);
+    background: rgba(0, 0, 0, 0.04);
     border-radius: 4px;
+  }
+  .dark .table-cell-input:focus {
+    background: rgba(181, 242, 61, 0.06);
   }
 
   .status-badge {
@@ -182,21 +197,48 @@
     opacity: 0.92;
   }
 
-  /* Metric number highlight */
+  /* Metric number highlight — lime в тёмной, синий в светлой */
   .metric-lime {
     color: var(--lime);
     font-family: "IBM Plex Mono", monospace;
   }
 
-  /* Subtle card glow on hover */
+  /* Subtle card hover */
   .card-hover {
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
   }
-  .card-hover:hover {
+  .dark .card-hover:hover {
     border-color: rgba(181, 242, 61, 0.25);
     box-shadow: 0 0 0 1px rgba(181, 242, 61, 0.08);
+  }
+  :root .card-hover:hover {
+    border-color: rgba(34, 85, 180, 0.25);
+    box-shadow: 0 0 0 1px rgba(34, 85, 180, 0.06);
+  }
+
+  /* btn-lime в светлой теме → синяя кнопка */
+  :root .btn-lime {
+    background: hsl(222 65% 40%);
+    color: #ffffff;
+  }
+  :root .btn-lime:hover {
+    background: hsl(222 65% 35%);
+    box-shadow: 0 2px 8px rgba(34, 85, 180, 0.25);
+    opacity: 1;
+  }
+
+  /* tab-active в светлой теме → синий */
+  :root .tab-active {
+    border-bottom-color: hsl(222 65% 40%);
+    color: hsl(222 65% 40%);
+  }
+
+  /* ── Recharts в светлой теме — нейтральный фон тултипов ── */
+  :root .recharts-default-tooltip {
+    background: white !important;
+    border-color: hsl(220 15% 87%) !important;
   }
 
   .animate-fade-in {

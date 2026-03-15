@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { api } from "@/api";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 function TopNav({ active }: { active: string }) {
@@ -259,7 +260,7 @@ export default function Economics() {
               <span className="text-muted-foreground text-xs hidden sm:block">·</span>
               <span className="text-xs text-muted-foreground hidden sm:block">Экономика</span>
             </div>
-            <TopNav active="/economics" />
+            <div className="flex items-center gap-1"><TopNav active="/economics" /><ThemeToggle /></div>
           </div>
         </div>
       </header>
