@@ -212,7 +212,7 @@ function PlanCell({ value, onChange }: { value: string; onChange: (v: string) =>
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="план"
-      className="w-full bg-blue-500/8 border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-blue-500/15 rounded transition-colors placeholder:text-blue-400/25 text-blue-300"
+      className="w-full bg-blue-500/10 border-0 outline-none text-xs font-mono px-1.5 py-[3px] text-right focus:bg-blue-500/18 rounded transition-colors placeholder:text-muted-foreground/30 text-blue-200/70"
     />
   );
 }
