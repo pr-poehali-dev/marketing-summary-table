@@ -14,7 +14,7 @@ const TABS = [
   { id: "influencers", label: "Инфлюенс",   icon: "Star",           desc: "Блогеры / Reels" },
   { id: "funnels",     label: "Воронки",     icon: "GitBranch",      desc: "Оцифровка пути" },
   { id: "launch",      label: "Запуск",      icon: "Rocket",         desc: "Декомпозиция" },
-  { id: "kpi",         label: "Метрики",     icon: "BarChart2",      desc: "KPI и показатели" },
+  { id: "kpi",         label: "Итоги",       icon: "BarChart2",      desc: "Итоги периода" },
   { id: "report",      label: "Отчёт",       icon: "FileText",       desc: "Итоги периода" },
 ] as const;
 
