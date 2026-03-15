@@ -63,7 +63,7 @@ export default function Index() {
                 <Icon name="LayoutDashboard" size={13} />
                 Дашборд
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-primary font-medium rounded-md bg-accent transition-colors whitespace-nowrap">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-foreground font-medium rounded-md bg-muted transition-colors whitespace-nowrap">
                 <Icon name="Table2" size={13} />
                 Основное
               </button>
